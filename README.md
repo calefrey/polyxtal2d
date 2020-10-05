@@ -1,0 +1,3 @@
+Requirements:
+* Scipy
+* matplotlib
