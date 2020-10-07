@@ -1,4 +1,6 @@
 from utils.bisector_scaling import scale
+
+
 class grain:
     def __init__(self, vertices, vertIDs, id):
         self.vertices = vertices
@@ -9,8 +11,8 @@ class grain:
         # make new instance to be manipulated later while the original remains intact
         return grain([], self.vertIDs, self.id)
 
-    def scaled(self, distance = .1):
-        distance = distance*1.154700538379252
+    def scaled(self, distance=0.1):
+        distance = distance * 1.154700538379252
         scaled_hex = self.blank()  # don't modify the original one
         scaled_hex.original = self
         scaled_hex.vertices = []

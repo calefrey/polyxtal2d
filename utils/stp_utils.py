@@ -1,12 +1,12 @@
-
-
-def high_level_line(file,num, x1, y1, x2, y2):
+def high_level_line(file, num, x1, y1, x2, y2):
     import math
 
     distance = math.sqrt(math.pow(x2 - x1, 2) + math.pow(y1 - y2, 2))
 
     file.write(f"#{num}=COMPOSITE_CURVE_SEGMENT(.CONTINUOUS.,.T.,#{num+1});\n")
-    file.write(f"#{num+1}=TRIMMED_CURVE('',#{num+2},(PARAMETER_VALUE(0.0)),(PARAMETER_VALUE({distance})),.T.,.UNSPECIFIED.);\n")
+    file.write(
+        f"#{num+1}=TRIMMED_CURVE('',#{num+2},(PARAMETER_VALUE(0.0)),(PARAMETER_VALUE({distance})),.T.,.UNSPECIFIED.);\n"
+    )
     file.write(f"#{num+2}=LINE('',#{num+3},#{num+4});\n")
     file.write(f"#{num+3}=CARTESIAN_POINT('',({x1},{y1},0.0));\n")
     file.write(f"#{num+4}=VECTOR('',#{num+5},1.0);\n")
@@ -17,7 +17,7 @@ def high_level_line(file,num, x1, y1, x2, y2):
 
 def header(file):
     file.write(
-"""ISO-10303-21;
+        """ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('STEP AP214'),'1');
 FILE_NAME('hexagon.stp','2020-07-20T18:51:28',(' '),(' '),'Spatial InterOp 3D',' ',' ');
@@ -53,7 +53,8 @@ DATA;
 #45= (NAMED_UNIT(#31)LENGTH_UNIT()SI_UNIT(.MILLI.,.METRE.));"""
     )
     file.write("\n")
-    return 46 #next line number
+    return 46  # next line number
+
 
 def footer(file):
     file.write("ENDSEC;\n")

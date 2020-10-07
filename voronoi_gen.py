@@ -15,7 +15,7 @@ for i in range(lower_x, upper_x):
         if i % 2:
             j = j + 0.5
         points.append([i, j])
-        plt.plot([i],[j],'b.')
+        plt.plot([i], [j], "b.")
 
 plt.axis("square")
 plt.xlim(lower_x, upper_x)
@@ -24,7 +24,7 @@ plt.show()
 
 vor = Voronoi(points)
 
-#display original voronoi boundaries
+# display original voronoi boundaries
 fig = voronoi_plot_2d(vor)
 plt.axis("square")
 plt.xlim(lower_x, upper_x)
@@ -40,7 +40,9 @@ for idx, region in enumerate(vor.regions):
             vor.vertices[i] for i in region
         ]  # gets the vertices referenced by the region values
         if len(corners) == 6:  # only hexagons
-            plt.fill(*zip(*corners)) #useful illustration to demonstrate the selected regions
+            plt.fill(
+                *zip(*corners)
+            )  # useful illustration to demonstrate the selected regions
             # center = vor.points[idx]
             grains.append(grain(corners, region, idx))
             # grains[region] = grain(corners)
@@ -55,7 +57,6 @@ scaled = [g.scaled(distance=distance) for g in grains]
 
 for grain in scaled:
     plt.fill(*zip(*grain.vertices))
-    
 
 
 plt.axis("square")

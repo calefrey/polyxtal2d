@@ -220,25 +220,25 @@ from utils.grain_class import grain
 def part_writer(g: grain, file, n):
     oriented_edges = []
     for i in range(1, len(g.vertices) + 1):
-            i = i % len(g.vertices)  # wrap around the list 
-            # vertices[i] and vertices[i-1] available
-            x1,y1 = g.vertices[i-1]
-            x2,y2 = g.vertices[i]
-            file.write(f"#{n+0}=VERTEX_POINT('',#{n+1});\n")
-            file.write(f"#{n+1}=CARTESIAN_POINT('',({x1},{y1},0.0));\n")
-            file.write(f"#{n+2}=VERTEX_POINT('',#{n+3});\n")
-            file.write(f"#{n+3}=CARTESIAN_POINT('',({x2},{y2},0.0));\n")
-            file.write(f"#{n+4}=VECTOR('',#{n+5},1.0);\n")
-            file.write(f"#{n+5}=DIRECTION('',({x1-x2},{y1-y2},0.0));\n")
-            file.write(f"#{n+6}=LINE('',#{n+1},#{n+4});\n")
-            file.write(f"#{n+7}=EDGE_CURVE('',#{n+0},#{n+2},#{n+6},.T.);\n")
-            file.write(f"#{n+8}=ORIENTED_EDGE('',*,*,#{n+7},.T.);\n")
-            oriented_edges.append(n+8)
-            n += 8 #keep the rest in line
-    
-    file.write(f"#{n}=EDGE_LOOP('',({','.join([f'#{x}' for x in oriented_edges])}));\n") #comma separated list of the oriented edges, with #s in front
-    file.write(f"#{n+1}=FACE_BOUND('',#{n},.T.);\n")
+        i = i % len(g.vertices)  # wrap around the list
+        # vertices[i] and vertices[i-1] available
+        x1, y1 = g.vertices[i - 1]
+        x2, y2 = g.vertices[i]
+        file.write(f"#{n+0}=VERTEX_POINT('',#{n+1});\n")
+        file.write(f"#{n+1}=CARTESIAN_POINT('',({x1},{y1},0.0));\n")
+        file.write(f"#{n+2}=VERTEX_POINT('',#{n+3});\n")
+        file.write(f"#{n+3}=CARTESIAN_POINT('',({x2},{y2},0.0));\n")
+        file.write(f"#{n+4}=VECTOR('',#{n+5},1.0);\n")
+        file.write(f"#{n+5}=DIRECTION('',({x1-x2},{y1-y2},0.0));\n")
+        file.write(f"#{n+6}=LINE('',#{n+1},#{n+4});\n")
+        file.write(f"#{n+7}=EDGE_CURVE('',#{n+0},#{n+2},#{n+6},.T.);\n")
+        file.write(f"#{n+8}=ORIENTED_EDGE('',*,*,#{n+7},.T.);\n")
+        oriented_edges.append(n + 8)
+        n += 8  # keep the rest in line
+
     file.write(
-            f"#{n+2}=FACE_SURFACE('',(#{n+1}),#{plane_id},.T.);\n"
-        )
-    return n+3
+        f"#{n}=EDGE_LOOP('',({','.join([f'#{x}' for x in oriented_edges])}));\n"
+    )  # comma separated list of the oriented edges, with #s in front
+    file.write(f"#{n+1}=FACE_BOUND('',#{n},.T.);\n")
+    file.write(f"#{n+2}=FACE_SURFACE('',(#{n+1}),#{plane_id},.T.);\n")
+    return n + 3
