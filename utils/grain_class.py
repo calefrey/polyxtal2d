@@ -2,10 +2,10 @@ from utils.bisector_scaling import scale
 
 
 class grain:
-    def __init__(self, vertices, vertIDs, id):
+    def __init__(self, vertices, vertIDs, idx):
         self.vertices = vertices
         self.vertIDs = vertIDs
-        self.id = id
+        self.id = idx
 
     def blank(self):
         # make new instance to be manipulated later while the original remains intact
