@@ -1,3 +1,2 @@
-from utils.grain_class import grain
-from utils.stp_utils_v2 import part_writer
-from utils.bisector_scaling import scale
+from utils.bisector_scaling import scale as bisector_scale
+from utils.abaqus_macro_writer import polygon_writer, header, process_lines, set_assigner
