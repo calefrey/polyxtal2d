@@ -1,7 +1,9 @@
-#Generate .rpy file using existing files as template, and then when you open CAE 'Run Script" and select the rpy file.
+# Generate .rpy file using existing files as template, and then when you open CAE 'Run Script" and select the rpy file.
 
-def line_writer(f, p1:list, p2:list):
+
+def line_writer(f, p1: list, p2: list):
     f.write(f"s1.Line(point1=({p1[0]}, {p1[1]}), point2=({p2[0]}, {p2[1]}))\n")
+
 
 # #http://130.149.89.49:2080/v6.13/books/cmd/default.htm?startat=pt02ch06s06.html
 # def section_assigner(f, point_on_section:list, section_name:str):
@@ -9,19 +11,20 @@ def line_writer(f, p1:list, p2:list):
 # faces = f.findAt((({point_on_section[0]},{point_on_section[1]}),)) #find face where the given point exists, can't overlap with other faces
 # region = regionToolset.Region(faces=faces)
 # p = mdb.models['Model-1'].parts['Part-1']
-# p.SectionAssignment(region=region, sectionName='{section_name}', offset=0.0, 
-#     offsetType=MIDDLE_SURFACE, offsetField='', 
+# p.SectionAssignment(region=region, sectionName='{section_name}', offset=0.0,
+#     offsetType=MIDDLE_SURFACE, offsetField='',
 #     thicknessAssignment=FROM_SECTION)
 # p = mdb.models['Model-1'].parts['Part-1']
 # f = p.faces
 # """)
 
-def set_assigner(f,points:dict,set_name:str):
+
+def set_assigner(f, points: dict, set_name: str):
     """
     Create a set from a list of points like [[x1,y1],[x2,y2],[x3,y3]]
     """
-    #example:
-    #faces = f.findAt(((-2.11, -15.015, 0.0), ), ((20.889999, 13.045, 0.0), ), ((-19.333731, 13.095932, 0.0), ), ((-44.429999, 5.685, 0.0), ))
+    # example:
+    # faces = f.findAt(((-2.11, -15.015, 0.0), ), ((20.889999, 13.045, 0.0), ), ((-19.333731, 13.095932, 0.0), ), ((-44.429999, 5.685, 0.0), ))
     # p.Set(faces=faces, name='Set-2')
     coords = ""
     for index in points:
@@ -30,18 +33,21 @@ def set_assigner(f,points:dict,set_name:str):
     f.write(f"p.Set(faces=faces, name='{set_name}')\n")
     print("Set created")
 
-def polygon_writer(f,points:list):
-    for i in range(1,len(points)+1):
-        i = i%len(points) #wrap around
-        p1 = points[i-1]
-        p2 = points[i]
-        line_writer(f,p1,p2)
 
-def header(f, bounds:list):
+def polygon_writer(f, points: list):
+    for i in range(1, len(points) + 1):
+        i = i % len(points)  # wrap around
+        p1 = points[i - 1]
+        p2 = points[i]
+        line_writer(f, p1, p2)
+
+
+def header(f, bounds: list):
     """
     File object and [max_x,max_y]
     """
-    f.write(f"""
+    f.write(
+        f"""
 from abaqus import *
 from abaqusConstants import *
 session.Viewport(name='Viewport: 1', origin=(0.0, 0.0), width=206.67626953125, 
@@ -82,11 +88,14 @@ s1.setPrimaryObject(option=SUPERIMPOSE)
 p = mdb.models['Model-1'].parts['Part-1']
 p.projectReferencesOntoSketch(sketch=s1, filter=COPLANAR_EDGES)
 #s1.sketchOptions.setValues(gridOrigin=(-5.0, -5.0))
-""")
+"""
+    )
+
 
 def process_lines(f):
     """abaqus needs to create faces after all of these lines we just wrote"""
-    f.write("""
+    f.write(
+        """
 p = mdb.models['Model-1'].parts['Part-1']
 f = p.faces
 pickedFaces = f.getSequenceFromMask(mask=('[#1 ]', ), )
@@ -94,4 +103,5 @@ e1, d2 = p.edges, p.datums
 p.PartitionFaceBySketch(faces=pickedFaces, sketch=s1)
 s1.unsetPrimaryObject()
 del mdb.models['Model-1'].sketches['__profile__']
-""")
+"""
+    )
