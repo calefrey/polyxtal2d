@@ -34,7 +34,7 @@ from utils import bisector_scale, polygon_writer, header, process_lines, set_ass
 from collections import defaultdict
 vertex_array = defaultdict(list) #dict of lists
 grain_array = defaultdict(list)
-grain_centers = []
+grain_centers = {}
 for r_idx, region in enumerate(vor.regions):
     if not -1 in region and len(region) == 6: #bounded with 6 sides
         for i in range(2,len(region)+2):
@@ -48,7 +48,7 @@ for r_idx, region in enumerate(vor.regions):
             grain_array[r_idx].append(new_point) #{grain_id:[point1]}
         centerx = sum([vor.vertices[p][0] for p in region])/6
         centery = sum([vor.vertices[p][1] for p in region])/6
-        grain_centers.append([centerx,centery])
+        grain_centers[r_idx] = [centerx,centery]
         plt.plot(centerx,centery,"b.")
 
 try:

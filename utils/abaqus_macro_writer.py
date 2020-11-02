@@ -16,7 +16,7 @@ def line_writer(f, p1:list, p2:list):
 # f = p.faces
 # """)
 
-def set_assigner(f,points:list,set_name:str):
+def set_assigner(f,points:dict,set_name:str):
     """
     Create a set from a list of points like [[x1,y1],[x2,y2],[x3,y3]]
     """
@@ -24,8 +24,8 @@ def set_assigner(f,points:list,set_name:str):
     #faces = f.findAt(((-2.11, -15.015, 0.0), ), ((20.889999, 13.045, 0.0), ), ((-19.333731, 13.095932, 0.0), ), ((-44.429999, 5.685, 0.0), ))
     # p.Set(faces=faces, name='Set-2')
     coords = ""
-    for point in points:
-        coords = coords + f"(({point[0]}, {point[1]}, 0.0), ), "
+    for index in points:
+        coords = coords + f"(({points[index][0]}, {points[index][1]}, 0.0), ), "
     f.write(f"faces = f.findAt({coords})\n")
     f.write(f"p.Set(faces=faces, name='{set_name}')\n")
     print("Set created")
