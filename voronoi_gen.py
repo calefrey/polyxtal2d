@@ -59,6 +59,13 @@ try:
 except OSError:
     pass
 
+# randomly pick some grains
+chosen_centers = {}
+for g in grain_array:
+    if random.random() < 0.33:  # 1/3 chance
+        chosen_centers[g] = grain_centers[g]
+        plt.plot(*grain_centers[g], "r.")
+
 with open("abaqus/output.py", "a") as file:
     header(file, [upper_x, upper_y])
     for grain in grain_array.values():
@@ -81,6 +88,7 @@ with open("abaqus/output.py", "a") as file:
                 plt.plot(*zip(p1, p2))
     process_lines(file)
     set_assigner(file, grain_centers, "Grains")
+    set_assigner(file, chosen_centers, "Chosen Grains")
 
 plt.axis("square")
 plt.xlim(0, upper_x)
