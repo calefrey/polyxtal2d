@@ -60,11 +60,29 @@ except OSError:
     pass
 
 # randomly pick some grains
-chosen_centers = {}
+chosen_centers = []
 for g in grain_array:
     if random.random() < 0.33:  # 1/3 chance
-        chosen_centers[g] = grain_centers[g]
+        chosen_centers.append(grain_centers[g])
         plt.plot(*grain_centers[g], "r.")
+
+# Finding the cohesive zones relating to each grain would be specific to the
+# geometry anyway, so we're going to hardcode it for hexagonal grains
+chosen_coh_centers = []
+offsets = [
+    [0, 0.5],
+    [0.5, 0.25],
+    [0.5, -0.25],
+    [0, -0.5],
+    [-0.5, -0.25],
+    [-0.5, 0.25],
+]  # clockwise, starting at the top
+for center in chosen_centers:
+    for vector in offsets:
+        # applies each offset vector to the grain centerpoint and adds it to the list of cohesive zone centers
+        new_point = [a + b for a, b in zip(center, vector)]
+        chosen_coh_centers.append(new_point)
+        plt.plot(*new_point, "r.")
 
 with open("abaqus/output.py", "a") as file:
     header(file, [upper_x, upper_y])
@@ -87,8 +105,9 @@ with open("abaqus/output.py", "a") as file:
                 line_writer(file, p1, p2)
                 plt.plot(*zip(p1, p2))
     process_lines(file)
-    set_assigner(file, grain_centers, "Grains")
+    set_assigner(file, grain_centers.values(), "Grains")
     set_assigner(file, chosen_centers, "Chosen Grains")
+    set_assigner(file, chosen_coh_centers, "Chosen Cohesive Grains")
 
 plt.axis("square")
 plt.xlim(0, upper_x)
