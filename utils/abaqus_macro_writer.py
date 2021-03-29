@@ -42,7 +42,7 @@ def polygon_writer(f, points: list):
         line_writer(f, p1, p2)
 
 
-def header(f, bounds: list):
+def initialize(f, bounds: list):
     """
     File object and [max_x,max_y]
     """

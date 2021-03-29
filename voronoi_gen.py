@@ -1,5 +1,5 @@
-upper_x = 10
-upper_y = 10
+upper_x = 14
+upper_y = 14
 distance = 0.05
 
 from utils.abaqus_macro_writer import line_writer
@@ -30,7 +30,13 @@ plt.xlim(0, upper_x)
 plt.ylim(0, upper_y)
 plt.show()
 
-from utils import bisector_scale, polygon_writer, header, process_lines, set_assigner
+from utils.abaqus_macro_writer import (
+    polygon_writer,
+    initialize,
+    process_lines,
+    set_assigner,
+)
+from utils.bisector_scaling import scale as bisector_scale
 from collections import defaultdict
 
 vertex_array = defaultdict(list)  # dict of lists
@@ -68,7 +74,7 @@ for g in grain_array:
 
 # Finding the cohesive zones relating to each grain would be specific to the
 # geometry anyway, so we're going to hardcode it for hexagonal grains
-chosen_coh_centers = []
+coh_centers = []
 offsets = [
     [0, 0.5],
     [0.5, 0.25],
@@ -77,6 +83,15 @@ offsets = [
     [-0.5, -0.25],
     [-0.5, 0.25],
 ]  # clockwise, starting at the top
+for center in grain_centers.values():
+    for vector in offsets:
+        # applies each offset vector to the grain centerpoint and adds it to the list of cohesive zone centers
+        new_point = [a + b for a, b in zip(center, vector)]
+        coh_centers.append(new_point)
+        plt.plot(*new_point, "b.")
+
+
+chosen_coh_centers = []
 for center in chosen_centers:
     for vector in offsets:
         # applies each offset vector to the grain centerpoint and adds it to the list of cohesive zone centers
@@ -84,8 +99,12 @@ for center in chosen_centers:
         chosen_coh_centers.append(new_point)
         plt.plot(*new_point, "r.")
 
+# Remove instances of chosen cohesive centers from the cohesive centers array
+# We don't want to include the same face twice
+coh_centers = [p for p in coh_centers if p not in chosen_coh_centers]
+
 with open("abaqus/output.py", "a") as file:
-    header(file, [upper_x, upper_y])
+    initialize(file, [upper_x, upper_y])
     for grain in grain_array.values():
         plt.fill(*zip(*grain))
         polygon_writer(file, grain)
@@ -106,8 +125,9 @@ with open("abaqus/output.py", "a") as file:
                 plt.plot(*zip(p1, p2))
     process_lines(file)
     set_assigner(file, grain_centers.values(), "Grains")
+    set_assigner(file, coh_centers, "Cohesive Zones")
     set_assigner(file, chosen_centers, "Chosen Grains")
-    set_assigner(file, chosen_coh_centers, "Chosen Cohesive Grains")
+    set_assigner(file, chosen_coh_centers, "Chosen Cohesive Zones")
 
 plt.axis("square")
 plt.xlim(0, upper_x)
