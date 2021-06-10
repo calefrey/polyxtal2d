@@ -31,6 +31,9 @@ module load python37
 unset SLURM_GTIDS               # otherwise Abaqus fails to run
 EOF1
 
+#pull the code repo first to get the latest changes
+git -C ~/polyxtal2d/ pull
+
 #MAKE DIRECTORY VARIABLES
 #current workding directory where this script is called
 cwd=$(pwd)
