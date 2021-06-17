@@ -52,9 +52,6 @@ for p1 in 1000 10000 100000; do #(ex: 1 2 3 loops over 1, 2, and 3)
         #define a name based on the specified parameters
         name="size_${size}_prop_1_${p1}_prop_2_${p2}"
 
-        #do the python3 logic (microstructure generation and scripting) on the head node first
-        python3 ~/vol_sills/scripted/voronoi_gen.py $name $size $p1 $p2
-
         #WRITE THE SLURM BATCH FILE, WHICH WILL COPY FILES INTO STORAGE AT THE END OF THE RUN
         cp slurmhdr $name.batch
         echo "$exedir/$exe cae noGUI=${name}.py" >>$name.batch                                      # run the python script to generate the .inp
@@ -70,6 +67,8 @@ for p1 in 1000 10000 100000; do #(ex: 1 2 3 loops over 1, 2, and 3)
 
         #MOVE INTO THE WORKING DIRECTORY, CALL SLURM, AND MOVE BACK
         cd $mydir/$name
+        #do the python3 logic (microstructure generation and scripting) on the head node first
+        python3 ~/polyxtal2d/voronoi_gen.py $name $size $p1 $p2
         sbatch $name.batch
         cd $cwd
 
