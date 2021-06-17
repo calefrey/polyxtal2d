@@ -263,18 +263,5 @@ mdb.Job(name='{jobname}', model='Model-1', description='', type=ANALYSIS,
     numGPUs=0)
 mdb.jobs['{jobname}'].writeInput(consistencyChecking=OFF)
 mdb.saveAs('{jobname}')
-session.viewports["Viewport: 1"].odbDisplay.display.setValues(
-    plotState=(CONTOURS_ON_DEF,)
-)
-session.viewports["Viewport: 1"].odbDisplay.setPrimaryVariable(
-    variableLabel="S",
-    outputPosition=INTEGRATION_POINT,
-    refinement=(INVARIANT, "Max. In-Plane Principal (Abs)"),
-)
-session.viewports["Viewport: 1"].view.fitView()
-session.printToFile(
-    fileName="{jobname}_result",
-    format=PNG,
-)
 """
     )
