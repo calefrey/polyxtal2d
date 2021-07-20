@@ -1,6 +1,7 @@
 from functools import wraps
 from os import write
 from typing import List, Text, TextIO
+from utils import length_scale
 
 
 def interaction_property(
@@ -9,6 +10,7 @@ def interaction_property(
     damagevalue: float,
     plastic_displacement: float,
     viscosity: float = None,
+    coh_stiffness: float = 1e9,
 ):
     """
     Optional viscosity value, if not set the relevant statements are omitted
@@ -16,11 +18,16 @@ def interaction_property(
     f.write(
         f"""
 mdb.models['Model-1'].ContactProperty('{prop_name}')
-mdb.models['Model-1'].interactionProperties['{prop_name}'].CohesiveBehavior()
+mdb.models['Model-1'].interactionProperties['{prop_name}'].CohesiveBehavior(
+    defaultPenalties=OFF, table=(({coh_stiffness}, {coh_stiffness}, {coh_stiffness}), ))
 mdb.models['Model-1'].interactionProperties['{prop_name}'].Damage(
     initTable=(({damagevalue}, {damagevalue}, {damagevalue}), ), useEvolution=ON,
-    evolTable=(({plastic_displacement}, ),){f', useStabilization=ON, viscosityCoef={viscosity}' if viscosity else ''}) #if there is a given viscosity include this section, and if not it'll just be blank
+    #if there is a given viscosity include this section, and if not it'll just be blank
+    evolTable=(({plastic_displacement}, ),){f', useStabilization=ON, viscosityCoef={viscosity}' if viscosity else ''})
 """
+    )
+    print(
+        f"Length scale of {prop_name}: {length_scale(stiffness=coh_stiffness, strength=damagevalue, crit_displacement=plastic_displacement, scientific=True)}"
     )
 
 
@@ -108,6 +115,9 @@ mdb.models['Model-1'].StaticStep(maxNumInc=10000, name='Step-1', previous=
     'Initial')
 mdb.models['Model-1'].steps['Step-1'].control.setValues(allowPropagation=OFF, 
     resetDefaultValues=OFF, discontinuous=ON)
+mdb.models['Model-1'].fieldOutputRequests['F-Output-1'].setValues(variables=(
+    'S', 'PE', 'PEEQ', 'PEMAG', 'LE', 'U', 'RF', 'CF', 'CSTRESS', 'CDISP', 
+    'CSTATUS', 'COORD', 'CSDMG'))
 """
     )
 
