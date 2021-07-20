@@ -23,3 +23,36 @@ def midpoints(region):  # list[list[float]]) -> list[list[float]]
         y = (p1[1] + p2[1]) / 2
         output.append([x, y])
     return output
+
+
+def length_scale(
+    stiffness: float = 370e9,
+    strength: float = 1e5,
+    crit_displacement: float = 1e-2,
+    check: bool = False,
+    mesh_size: float = 0.11,
+    crack_length: float = 5,
+    scientific: bool = False,
+    log: bool = False,
+):
+    toughness = 0.5 * strength * crit_displacement
+    result = stiffness * toughness / pow(strength, 2)
+    if check:
+        if result > 10 * mesh_size:
+            pass  # this is fine
+        else:
+            raise ValueError(
+                f"The length scale needs to be greater than 10x the mesh size, was {result:.1E}"
+            )
+
+        if result < 10 * crack_length:
+            pass  # this is fine
+        else:
+            raise ValueError(
+                f"The length scale needs to be smaller than 10x the crack length, was {result:.1E}"
+            )
+    if scientific:
+        result = "{:.1E}".format(result)
+    if log:
+        print(result)
+    return result
