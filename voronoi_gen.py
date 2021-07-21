@@ -94,7 +94,8 @@ def generate(upper_x, upper_y, prop_1, prop_2, mod_fraction=None, seed=None):
             centery = sum([vor.vertices[p][1] for p in region]) / 6
             grain_centers[r_idx] = [centerx, centery]
             plt.plot(centerx, centery, "b.")
-            plt.text(centerx, centery, str(r_idx), size="x-small")
+            plt.text(centerx, centery, str(r_idx), size=120 / upper_y)
+            # label the grain, shrink text size as the sim size grows
 
     # randomly pick some grains
 
@@ -171,7 +172,10 @@ def generate(upper_x, upper_y, prop_1, prop_2, mod_fraction=None, seed=None):
     plt.axis("square")
     plt.xlim(0, upper_x)
     plt.ylim(0, upper_y)
-    plt.savefig(f"{args.name}.png", dpi=400)
+
+    plt.savefig(f"{args.name}.png", dpi=20 * upper_y)
+    # scale with the size of the image
+
     # plt.show()
 
 
