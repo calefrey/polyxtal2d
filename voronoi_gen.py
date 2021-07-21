@@ -120,7 +120,7 @@ def generate(upper_x, upper_y, prop_1, prop_2, mod_fraction=None, seed=None):
     indptr, indices = Delaunay(indexed).vertex_neighbor_vertices
     # array of nearest neighbor relations, needed for later
 
-    with open(f"{args.name}.py", "a") as file:
+    with open(f"{args.name}.py", "w") as file:
         header(file)
         for grain in grain_array.values():
             polygon_writer(file, grain)
