@@ -90,6 +90,8 @@ def modify(
         # pick a 4-digit number to be the random seed. The way this is picked doesn't matter.
         # and use that number as the seed for the rest of the randomization functions
         # this allows for reproducible results
+        # first need to reset the seed so the different trials generate different new seeds
+        random.seed()
         seed = random.randint(1000, 9999)
     random.seed(seed)  # known state
     print(f"New seed: {seed}")
