@@ -169,13 +169,13 @@ if __name__ == "__main__":  # running standalone, not as a function, so take arg
     # load parameters saved from homogenous run
     previous_data = json.load(open(cae_filename.replace(".cae", ".json")))
     size = previous_data["size"]
-    print(f"{size=}")
+    print(f"size: {size}")
     old_seed = previous_data["seed"]
-    print(f"{old_seed=}")
+    print(f"seed: {old_seed}")
     prop_1 = previous_data["prop_1"]
-    print(f"{prop_1=}")
+    print(f"prop_1: {prop_1}")
     prop_2 = previous_data["prop_2"]
-    print(f"{prop_2=}")
+    print(f"prop_2: {prop_2}")
 
     if new_seed:  # specify a seed
         pass
