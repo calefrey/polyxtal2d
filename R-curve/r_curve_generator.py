@@ -58,6 +58,9 @@ for step in odb.steps.values():
             ):
                 # print("New crack tip at x=" + str(coords.values[i].data[0]))
                 current_a = coords.values[i].data[0]
+                if current_a >= width:  # we've reached the end of the sample
+                    print("End of sample reached")
+                    exit()  # end logging
 
         # should have the leftmost failed node located at current_a
         # which should be the crack tip
