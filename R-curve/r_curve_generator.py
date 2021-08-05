@@ -6,6 +6,16 @@ import math, os
 from odbAccess import *
 from sys import argv
 
+# PROPERTIES TO CHANGE ========================
+a0 = 5  # initial crack depth, be conservative
+strength = 50000  # primary property cohesive strength
+modulus = 1e9  # under traction separaton behaivor in the contact property
+critical_displacement = 1e-05  # total plastic displacement
+# ==============================================
+
+
+dmg_thresh = 0.999
+
 
 def stress_intensity_factor(stress, a, width):
     """
@@ -37,10 +47,12 @@ initial_x_values = [
 ]
 x_offset = min(initial_x_values)
 width = max(initial_x_values) - x_offset
-a0 = 5  # initial crack depth, be conservative
-dmg_thresh = 0.999
-current_a = a0
 
+current_a = a0
+toughness = 0.5 * (strength * critical_displacement)
+print("Toughness = " + str(toughness))
+critical_sif = math.sqrt(toughness * modulus)
+print("Critical SIF:", critical_sif)
 for step in odb.steps.values():
     print("Processing: " + step.name)
     for frame in step.frames:
@@ -81,9 +93,10 @@ for step in odb.steps.values():
 
         # Determine the K_I
         K_I = stress_intensity_factor(stress, a, width)
-        print("K_I=" + str(round(K_I, 2)))
+        normalized = K_I / critical_sif
+        print("K_I=" + str(round(normalized)))
 
         # Write the data to a file:
         with open("r-curve.txt", "a") as f:
-            f.write(str(a / width) + "\t" + str(K_I) + "\n")
+            f.write(str(a / width) + "\t" + str(normalized) + "\n")
 odb.close()
