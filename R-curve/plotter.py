@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 from sys import argv
 import matplotlib.animation as ani
 
+animation = False
 
 # with open(argv[1], "r") as f:
 with open("r-curve.txt", "r") as f:
@@ -31,6 +32,10 @@ def builddata(i):
     return p
 
 
-animator = ani.FuncAnimation(fig, builddata, frames=len(x_arr), repeat=False)
-plt.show()
+if animation:
+    animator = ani.FuncAnimation(fig, builddata, frames=len(x_arr), repeat=False)
+    plt.show()
+else:
+    plt.plot(x_arr, y_arr, marker=".", color="tab:blue")
+    plt.show()
 fig.savefig(f"r-curve.png")  # saves final r-curve to file
