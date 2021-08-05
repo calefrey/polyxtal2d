@@ -54,7 +54,7 @@ for step in odb.steps.values():
         for i in range(len(csdmg.values)):
             if (
                 csdmg.values[i].data > dmg_thresh
-                and coords.values[i].data[1] > current_a
+                and coords.values[i].data[0] > current_a
             ):
                 # print("New crack tip at x=" + str(coords.values[i].data[0]))
                 current_a = coords.values[i].data[0]
