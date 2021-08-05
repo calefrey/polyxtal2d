@@ -3,7 +3,8 @@ from sys import argv
 import matplotlib.animation as ani
 
 animation = False
-
+name = None
+lengthscale = None
 # with open(argv[1], "r") as f:
 with open("r-curve.txt", "r") as f:
     x_arr = []
@@ -11,14 +12,22 @@ with open("r-curve.txt", "r") as f:
     for line in f.readlines():
         if line.startswith("#"):
             continue
+        elif line.startswith("name"):
+            name = line.split("=")[1].strip()  # remove newline
+            print(f"{name=}")
+        elif line.startswith("lengthscale"):
+            lengthscale = line.split("=")[1].strip()  # remove newline
+            print(f"{lengthscale=}")
         else:
             x, y = line.split()
             x_arr.append(float(x))
             y_arr.append(float(y))
 
 fig = plt.figure()
-plt.ylabel("$K_I$")
+plt.ylabel("$K$")
 plt.xlabel("$\\frac{a}{w}$")
+if name and lengthscale:
+    plt.title(f"{name}, length scale = {lengthscale}")
 
 
 def builddata(i):

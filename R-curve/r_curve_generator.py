@@ -36,11 +36,13 @@ def stress_intensity_factor(stress, a, width):
 
 # Objective: Generate a plot of crack length a vs stress intensity factor K
 odb = openOdb(path=argv[1], readOnly=True)
+
 try:  # we append to the file, so if there's already one, delete it
     os.remove("r-curve.txt")
 except OSError:  # file already deleted
     pass
-
+f = open("r-curve.txt", "a")  # file to save data
+f.write("name=" + odb.name.split("/")[-1] + "\n")  # name of the odb
 initial_x_values = [
     value.data[0]  # x value for each node in first frame
     for value in odb.steps.values()[0].frames[0].fieldOutputs["COORD"].values
@@ -51,6 +53,8 @@ width = max(initial_x_values) - x_offset
 current_a = a0
 toughness = 0.5 * (strength * critical_displacement)
 print("Toughness = " + str(toughness))
+length_scale = modulus * toughness / pow(strength, 2)
+f.write("lengthscale=" + str(length_scale) + "\n")
 critical_sif = math.sqrt(toughness * modulus)
 print("Critical SIF:", critical_sif)
 for step in odb.steps.values():
@@ -97,6 +101,7 @@ for step in odb.steps.values():
         print("K_I=" + str(round(normalized)))
 
         # Write the data to a file:
-        with open("r-curve.txt", "a") as f:
-            f.write(str(a / width) + "\t" + str(normalized) + "\n")
+        f.write(str(a / width) + "\t" + str(normalized) + "\n")
+
+f.close()
 odb.close()
