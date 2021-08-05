@@ -147,9 +147,9 @@ def generate(upper_x, upper_y, prop_1, prop_2, mod_fraction=None, seed=None):
             viscosity=1e-3,
         )
         general_interaction(file, "General", "Prop-1")
-        encastre(file, "BC-1")
-        top_displacement(file, "BC-2", u2=0.1, threshold=upper_y - 1.5)
-        colors = iter(plt.cm.tab20(np.linspace(0, 1, len(chosen_grains))))
+        encastre(file, "BC-1", threshold=2)
+        top_displacement(file, "BC-2", u2=0.1, threshold=upper_y - 2)
+        colors = iter(plt.cm.tab20(np.linspace(0, 1, len(chosen_grains))))  # type: ignore
         for c_idx in chosen_grains:
             color = next(colors)
             neighbors = indices[indptr[c_idx] : indptr[c_idx + 1]]

@@ -125,8 +125,8 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
             viscosity=1e-3,
         )
         general_interaction(file, "General", "Prop-1")
-        encastre(file, "BC-1")
-        top_displacement(file, "BC-2", u2=0.001, threshold=upper_y - 1.5)
+        encastre(file, "BC-1", threshold=2)
+        top_displacement(file, "BC-2", u2=0.1, threshold=upper_y - 2)
         file.write(f"mdb.saveAs('{args.name}')")  # save cae
 
     title = f"Seed: {seed}, prop_1: {prop_1},  prop_2: {prop_2}"
