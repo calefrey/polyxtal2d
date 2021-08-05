@@ -19,11 +19,6 @@ with open("r-curve.txt", "r") as f:
 fig = plt.figure()
 plt.ylabel("$K_I$")
 plt.xlabel("$\\frac{a}{w}$")
-axes = plt.gca()
-
-axes.xaxis.label.set_size(14)
-
-axes.yaxis.label.set_size(14)
 
 
 def builddata(i):
