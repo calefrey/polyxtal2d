@@ -7,22 +7,6 @@ from odbAccess import *
 from sys import argv
 
 
-x_offset = 0.13
-a0 = 0.13  # initial crack depth
-width = 18.18  # width of the sample
-dmg_thresh = 0.999
-
-
-# Objective: Generate a plot of crack length a vs stress intensity factor K
-odb = openOdb(path=argv[1], readOnly=True)
-try:  # we append to the file, so if there's already one, delete it
-    os.remove("r-curve.txt")
-except OSError:  # file already deleted
-    pass
-
-current_a = a0
-
-
 def stress_intensity_factor(stress, a, width):
     """
     Returns K_I for an edge crack of length a in a sample of given width under uniaxial stress
@@ -39,6 +23,23 @@ def stress_intensity_factor(stress, a, width):
         )
     )
 
+
+# Objective: Generate a plot of crack length a vs stress intensity factor K
+odb = openOdb(path=argv[1], readOnly=True)
+try:  # we append to the file, so if there's already one, delete it
+    os.remove("r-curve.txt")
+except OSError:  # file already deleted
+    pass
+
+initial_x_values = [
+    value.data[0]  # x value for each node in first frame
+    for value in odb.steps.values()[0].frames[0].fieldOutputs["COORD"].values
+]
+x_offset = min(initial_x_values)
+width = max(initial_x_values) - x_offset
+a0 = 5  # initial crack depth, be conservative
+dmg_thresh = 0.999
+current_a = a0
 
 for step in odb.steps.values():
     print("Processing: " + step.name)
@@ -76,11 +77,11 @@ for step in odb.steps.values():
             # if f_val.data[1] > 0:  # exclude negative effects
             f_total += f_val.data[1]  # sum up the y values
         stress = f_total / width
-        print("Stress=" + str(stress)),
+        print("Stress=" + str(round(stress, 2))),
 
         # Determine the K_I
         K_I = stress_intensity_factor(stress, a, width)
-        print("K_I=" + str(K_I))
+        print("K_I=" + str(round(K_I, 2)))
 
         # Write the data to a file:
         with open("r-curve.txt", "a") as f:
