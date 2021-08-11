@@ -99,8 +99,13 @@ def modify(
     chosen_grains = []
     for g in grain_array:
         if random.random() < mod_fraction:  # set fraction of modified grains
-            plt.plot(*grain_centers[g], "r*")
-            chosen_grains.append(g)
+            if prop_2 < prop_1 and (
+                size - grain_centers[g][1] < 3 or grain_centers[g][1] < 3
+            ):  # Don't add weaker modifiers if the grains are near the top or bottom
+                pass
+            else:
+                plt.plot(*grain_centers[g], "r*")
+                chosen_grains.append(g)
 
     indexed = []
     for i in range(len(vor.regions)):
