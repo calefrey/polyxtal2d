@@ -32,6 +32,26 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 distance = 0.005  # width of the gap between grains
 
 
+def add_crack(grain_array: dict, grain_centers: dict, x_max, y_min, y_max):
+    import copy
+
+    # credate duplicate arrays to modify
+    new_grain_array = copy.deepcopy(grain_array)
+    new_grain_centers = copy.deepcopy(grain_centers)
+    for key, value in grain_centers.items():
+        x = value[0]
+        y = value[1]
+        if x < x_max and y_min < y < y_max:
+            # Add a crack by deleting grain from the new arrays
+            new_grain_array.pop(key)
+            new_grain_centers.pop(key)
+            plt.text(x, y, key, fontsize=5 / upper_y)
+
+        else:
+            plt.fill(*zip(*grain_array[key]))  # if we keep the grain, plot it
+    return new_grain_array, new_grain_centers
+
+
 @timeit
 def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
 
@@ -90,13 +110,30 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
                     new_point
                 )  # {vertex_id:{grain_id: [new_point.x, new_point.y]}}
                 grain_array[r_idx].append(new_point)  # {grain_id:[point1]}
-            plt.fill(*zip(*grain_array[r_idx]))  # draw the scaled polygons
+            # plt.fill(*zip(*grain_array[r_idx]))  # draw the scaled polygons
             centerx = sum([vor.vertices[p][0] for p in region]) / 6
             centery = sum([vor.vertices[p][1] for p in region]) / 6
             grain_centers[r_idx] = [centerx, centery]
-            plt.plot(centerx, centery, "b.")
-            plt.text(centerx, centery, str(r_idx), size=120 / upper_y)
+            # plt.plot(centerx, centery, "b.")
+            # plt.text(centerx, centery, str(r_idx), size=120 / upper_y)
             # label the grain, shrink text size as the sim size grows
+
+    print(f"Number of Grains: {len(grain_array)}")
+    area_per_grain = upper_y * upper_x / len(grain_array)
+    print(f"Average area per grain: {area_per_grain}")
+    # average grain diameter, treating grains as spheres
+    grain_size = 2 * np.sqrt(area_per_grain / np.pi)
+    print(f"Average grain size: {grain_size}")
+
+    # add crack
+    x_max = upper_x / 6
+    # bounds of crack should be one grain in size, centered around the middle.
+    halfway = upper_y / 2
+    y_min = halfway - grain_size / 2
+    y_max = halfway + grain_size / 2
+    grain_array, grain_centers = add_crack(
+        grain_array, grain_centers, x_max, y_min, y_max
+    )
 
     with open(f"{args.name}.py", "w") as file:
         header(file)
