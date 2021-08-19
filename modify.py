@@ -100,7 +100,8 @@ def modify(
     for g in grain_array:
         if random.random() < mod_fraction:  # set fraction of modified grains
             if prop_2 < prop_1 and (
-                size - grain_centers[g][1] < 3 or grain_centers[g][1] < 3
+                size - grain_centers[g][1] < size / 10
+                or grain_centers[g][1] < size / 10
             ):  # Don't add weaker modifiers if the grains are near the top or bottom
                 pass
             else:
