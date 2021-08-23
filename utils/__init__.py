@@ -74,3 +74,19 @@ def timeit(method):
         return result
 
     return timed
+
+
+def add_crack(grain_array: dict, grain_centers: dict, x_max, y_min, y_max):
+    import copy
+
+    # create duplicate arrays to modify
+    new_grain_array = copy.deepcopy(grain_array)
+    new_grain_centers = copy.deepcopy(grain_centers)
+    for key, value in grain_centers.items():
+        x = value[0]
+        y = value[1]
+        if x < x_max and y_min < y < y_max:
+            # Add a crack by deleting grain from the new arrays
+            new_grain_array.pop(key)
+            new_grain_centers.pop(key)
+    return new_grain_array, new_grain_centers

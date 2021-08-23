@@ -22,8 +22,9 @@ from utils.coh_surf_macros import (
     top_displacement,
     write_inp,
 )
-from utils import midpoints, region_sanity, timeit
+from utils import midpoints, region_sanity, timeit, add_crack
 from collections import defaultdict
+from matplotlib.patches import Rectangle
 
 distance = 0.005  # width of the gap between grains
 
@@ -41,19 +42,36 @@ def modify(
     # Code to recreate oritinal grain structure with old seed
     #########################################################
     random.seed(old_seed)  # known state
+    print(f"Seed: {seed}")
+    upper_x = size
+    upper_y = size
 
     points = []
-    for i in range(0, size):
+    for i in range(0, upper_x):
         x = i + random.gauss(0, 0.25) * 0.5  # use gaussian distribution
-        for j in range(0, size):
+        for j in range(0, upper_y):
             if i % 2:
                 j = j + 0.5
             y = j + random.gauss(0, 0.25) * 0.5
             points.append([x, y])
+            # plt.plot(x, y, "b.")
+
+    # plt.axis("square")
+    # plt.xlim(0, upper_x)
+    # plt.ylim(0, upper_y)
+    # plt.show()
 
     vor = Voronoi(points)
 
+    # display original voronoi boundaries
+    # fig = voronoi_plot_2d(vor)
+    # plt.axis("square")
+    # plt.xlim(0, upper_x)
+    # plt.ylim(0, upper_y)
+    # plt.show()
+
     from utils.bisector_scaling import scale as bisector_scale
+    from collections import defaultdict
 
     vertex_array = defaultdict(list)  # dict of lists
     grain_array = defaultdict(list)
@@ -62,7 +80,7 @@ def modify(
         if (
             not -1 in region
             and len(region) == 6
-            and region_sanity(region, size, size, vor.vertices)
+            and region_sanity(region, upper_x, upper_y, vor.vertices)
         ):  # bounded with 6 sides
             for i in range(2, len(region) + 2):
                 i = i % len(region)  # wrap around
@@ -75,13 +93,41 @@ def modify(
                     new_point
                 )  # {vertex_id:{grain_id: [new_point.x, new_point.y]}}
                 grain_array[r_idx].append(new_point)  # {grain_id:[point1]}
-            plt.fill(*zip(*grain_array[r_idx]))  # draw the scaled polygons
+            # plt.fill(*zip(*grain_array[r_idx]))  # draw the scaled polygons
             centerx = sum([vor.vertices[p][0] for p in region]) / 6
             centery = sum([vor.vertices[p][1] for p in region]) / 6
             grain_centers[r_idx] = [centerx, centery]
-            plt.plot(centerx, centery, "b.")
-            plt.text(centerx, centery, str(r_idx), size=120 / size)
+            # plt.plot(centerx, centery, "b.")
+            plt.text(centerx, centery, str(r_idx), size=120 / upper_y)
+            # label the grain, shrink text size as the sim size grows
 
+    print(f"Number of Grains: {len(grain_array)}")
+    area_per_grain = upper_y * upper_x / len(grain_array)
+    print(f"Average area per grain: {area_per_grain}")
+    # average grain diameter, treating grains as spheres
+    grain_size = 2 * np.sqrt(area_per_grain / np.pi)
+    print(f"Average grain size: {grain_size}")
+
+    # add crack
+    x_max = upper_x / 6
+    # bounds of crack should be one grain in size, centered around the middle.
+    halfway = upper_y / 2
+    y_min = halfway - grain_size / 2
+    y_max = halfway + grain_size / 2
+    # Plot the bounding box
+    rect = Rectangle(
+        (0, y_min),  # lower left corner of box
+        x_max,
+        y_max - y_min,
+        linestyle="dashed",
+        linewidth=0.1,
+        fill=False,
+    )  # type: ignore
+    plt.gca().add_patch(rect)
+
+    grain_array, grain_centers = add_crack(
+        grain_array, grain_centers, x_max, y_min, y_max
+    )
     #####################################
     # Select chosen grains using new seed
     #####################################
@@ -149,7 +195,8 @@ def modify(
     plt.axis("square")
     plt.xlim(0, size)
     plt.ylim(0, size)
-
+    for value in grain_array.values():
+        plt.fill(*zip(*value))  # plot the grains
     plt.savefig(f"{args.name}.png", dpi=20 * size)
 
 

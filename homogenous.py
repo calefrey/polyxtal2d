@@ -23,33 +23,14 @@ from utils.coh_surf_macros import (
     top_displacement,
     write_inp,
 )
-from utils import midpoints, region_sanity, timeit
+from utils import midpoints, region_sanity, timeit, add_crack
+from matplotlib.patches import Rectangle
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 # suppress divide-by-zero warning when calculating a slope
 
 
 distance = 0.005  # width of the gap between grains
-
-
-def add_crack(grain_array: dict, grain_centers: dict, x_max, y_min, y_max):
-    import copy
-
-    # credate duplicate arrays to modify
-    new_grain_array = copy.deepcopy(grain_array)
-    new_grain_centers = copy.deepcopy(grain_centers)
-    for key, value in grain_centers.items():
-        x = value[0]
-        y = value[1]
-        if x < x_max and y_min < y < y_max:
-            # Add a crack by deleting grain from the new arrays
-            new_grain_array.pop(key)
-            new_grain_centers.pop(key)
-            plt.text(x, y, key, fontsize=5 / upper_y)
-
-        else:
-            plt.fill(*zip(*grain_array[key]))  # if we keep the grain, plot it
-    return new_grain_array, new_grain_centers
 
 
 @timeit
@@ -131,6 +112,17 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
     halfway = upper_y / 2
     y_min = halfway - grain_size / 2
     y_max = halfway + grain_size / 2
+    # Plot the bounding box
+    rect = Rectangle(
+        (0, y_min),  # lower left corner of box
+        x_max,
+        y_max - y_min,
+        linestyle="dashed",
+        linewidth=0.1,
+        fill=False,
+    )  # type: ignore
+    plt.gca().add_patch(rect)
+
     grain_array, grain_centers = add_crack(
         grain_array, grain_centers, x_max, y_min, y_max
     )
@@ -163,25 +155,35 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
         )
         general_interaction(file, "General", "Prop-1")
         encastre(file, "BC-1", threshold=2)
-        top_displacement(file, "BC-2", u2=0.1, threshold=upper_y - 2)
+        top_displacement(file, "BC-2", u2=0.001, threshold=upper_y - 2)
         file.write(f"mdb.saveAs('{args.name}')")  # save cae
 
     title = f"Seed: {seed}, prop_1: {prop_1},  prop_2: {prop_2}"
     plt.title(title)
-
     plt.axis("square")
     plt.xlim(0, upper_x)
     plt.ylim(0, upper_y)
+    for key, value in grain_array.items():
+        plt.fill(*zip(*value))  # plot the grains
+        plt.text(
+            grain_centers[key][0], grain_centers[key][1], str(key), size=120 / upper_y
+        )
 
+    # plt.show()
     plt.savefig(f"{args.name}.png", dpi=20 * upper_y)
     # scale with the size of the image
 
-    json.dump(  # save generation paramters to file
-        {"size": upper_y, "seed": seed, "prop_1": prop_1, "prop_2": prop_2},
-        open(f"{args.name}.json", "w"),
-    )
-
-    # plt.show()
+    # save the grain array to a file
+    data = {}
+    data["size"] = upper_x  # assume square
+    # data["upper_y"] = upper_y
+    data["seed"] = seed
+    data["prop_1"] = prop_1
+    data["prop_2"] = prop_2
+    data["grain_array"] = grain_array
+    data["grain_centers"] = grain_centers
+    data["vor.regions"] = vor.regions
+    json.dump(data, open(f"{args.name}.json", "w"))
 
 
 if __name__ == "__main__":  # running standalone, not as a function, so take arguments
