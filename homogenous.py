@@ -23,7 +23,7 @@ from utils.coh_surf_macros import (
     top_displacement,
     write_inp,
 )
-from utils import midpoints, region_sanity, timeit, add_crack
+from utils import length_scale, midpoints, region_sanity, timeit, add_crack
 from matplotlib.patches import Rectangle
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -34,7 +34,7 @@ distance = 0.005  # width of the gap between grains
 
 
 @timeit
-def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
+def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, seed=None):
 
     if not seed:  # no seed specified
         # pick a 4-digit number to be the random seed. The way this is picked doesn't matter.
@@ -127,7 +127,7 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
         grain_array, grain_centers, x_max, y_min, y_max
     )
 
-    with open(f"{args.name}.py", "w") as file:
+    with open(f"{name}.py", "w") as file:
         header(file)
         for grain in grain_array.values():
             polygon_writer(file, grain)
@@ -139,14 +139,14 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
         for g in grain_array:
             mps = midpoints(grain_array[g])
             surface_maker(file, f"Surf-{g}", mps)
-        interaction_property(
+        ls_1 = interaction_property(
             file,
             "Prop-1",
             damagevalue=prop_1,
             plastic_displacement=1e-5,
             viscosity=1e-3,
         )
-        interaction_property(
+        ls_2 = interaction_property(
             file,
             "Prop-2",
             damagevalue=prop_2,
@@ -156,13 +156,22 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
         general_interaction(file, "General", "Prop-1")
         encastre(file, "BC-1", threshold=2)
         top_displacement(file, "BC-2", u2=0.001, threshold=upper_y - 2)
-        file.write(f"mdb.saveAs('{args.name}')")  # save cae
+        file.write(f"mdb.saveAs('{name}')")  # save cae
 
-    title = f"Seed: {seed}, prop_1: {prop_1},  prop_2: {prop_2}"
+    title = f"Seed: {seed}, Prop-1: {prop_1},  Prop-2: {prop_2}"
     plt.title(title)
     plt.axis("square")
     plt.xlim(0, upper_x)
     plt.ylim(0, upper_y)
+    notetext = (
+        "Length Scale:\n"
+        + f"Prop-1: {ls_1}\n"
+        + f"Prop-2: {ls_2}\n"
+        + f"Grain Size:\n"
+        + f"{grain_size:.3}"
+    )
+
+    plt.gcf().text(0.02, 0.5, notetext, fontsize=8)
     for key, value in grain_array.items():
         plt.fill(*zip(*value))  # plot the grains
         plt.text(
@@ -170,7 +179,7 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
         )
 
     # plt.show()
-    plt.savefig(f"{args.name}.png", dpi=20 * upper_y)
+    plt.savefig(f"{name}.png", dpi=20 * upper_y)
     # scale with the size of the image
 
     # save the grain array to a file
@@ -182,8 +191,8 @@ def generate(upper_x, upper_y, prop_1, prop_2, seed=None):
     data["prop_2"] = prop_2
     data["grain_array"] = grain_array
     data["grain_centers"] = grain_centers
-    data["vor.regions"] = vor.regions
-    json.dump(data, open(f"{args.name}.json", "w"))
+    data["vor_regions_length"] = len(vor.regions)
+    json.dump(data, open(f"{name}.json", "w"))
 
 
 if __name__ == "__main__":  # running standalone, not as a function, so take arguments
@@ -207,6 +216,7 @@ if __name__ == "__main__":  # running standalone, not as a function, so take arg
         type=int,
     )
     args = parser.parse_args()
+    name = args.name
     upper_x = args.size
     upper_y = args.size
     prop_1 = args.prop_1
@@ -217,4 +227,4 @@ if __name__ == "__main__":  # running standalone, not as a function, so take arg
     else:  # no seed specified
         seed = None
 
-    generate(upper_x, upper_y, prop_1, prop_2, seed=seed)
+    generate(name, upper_x, upper_y, prop_1, prop_2, seed=seed)

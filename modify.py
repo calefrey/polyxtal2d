@@ -1,133 +1,38 @@
-from typing import DefaultDict
-from scipy.spatial import Voronoi, voronoi_plot_2d, Delaunay
-import matplotlib.pyplot as plt
-import random, os
+import json, random, argparse
+from utils import timeit
+from matplotlib import pyplot as plt
+from scipy.spatial import Delaunay
+from utils import *
+from utils.coh_surf_macros import *
 import numpy as np
-import json
-import argparse
-from utils.coh_surf_macros import (
-    encastre,
-    header,
-    make_instance,
-    property_assignment,
-    section,
-    mesh,
-    polygon_writer,
-    section,
-    set_maker,
-    surface_maker,
-    process_lines,
-    interaction_property,
-    general_interaction,
-    top_displacement,
-    write_inp,
-)
-from utils import midpoints, region_sanity, timeit, add_crack
-from collections import defaultdict
-from matplotlib.patches import Rectangle
-
-distance = 0.005  # width of the gap between grains
 
 
 @timeit
-def modify(
-    name: str,
-    cae_filename: str,
-    size: int,
-    old_seed: int,
-    mod_fraction: float,
-    seed: int = None,
-):
-    #########################################################
-    # Code to recreate oritinal grain structure with old seed
-    #########################################################
-    random.seed(old_seed)  # known state
-    print(f"Seed: {seed}")
-    upper_x = size
-    upper_y = size
+def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
+    """
+    Creates a python script to modify the homogenous CAE file,
+    using microstructure information from a json file
+    """
+    if mod_fraction < 0 or mod_fraction > 1:
+        raise ValueError("Mod fraction must be between 0 and 1")
+    #####################################
+    # Load the data from the json file #
+    #####################################
+    json_filename = cae_filename.replace(".cae", ".json")
+    with open(json_filename, "r") as json_file:
+        json_data = json.load(json_file)
+        size = json_data["size"]  # type: float
+        prop_1 = json_data["prop_1"]  # type: float
+        prop_2 = json_data["prop_2"]  # type: float
+        keyint = lambda dict_: {
+            int(k): v for k, v in dict_.items()
+        }  # turns all keys into ints since the json process turns everything into strings
+        grain_array = json_data["grain_array"]
+        grain_array = keyint(grain_array)  # type: dict[int, list[list[float]]]
+        grain_centers = json_data["grain_centers"]
+        grain_centers = keyint(grain_centers)  # type: dict[int, list[float]]
+        vor_regions_length = json_data["vor_regions_length"]  # type:int
 
-    points = []
-    for i in range(0, upper_x):
-        x = i + random.gauss(0, 0.25) * 0.5  # use gaussian distribution
-        for j in range(0, upper_y):
-            if i % 2:
-                j = j + 0.5
-            y = j + random.gauss(0, 0.25) * 0.5
-            points.append([x, y])
-            # plt.plot(x, y, "b.")
-
-    # plt.axis("square")
-    # plt.xlim(0, upper_x)
-    # plt.ylim(0, upper_y)
-    # plt.show()
-
-    vor = Voronoi(points)
-
-    # display original voronoi boundaries
-    # fig = voronoi_plot_2d(vor)
-    # plt.axis("square")
-    # plt.xlim(0, upper_x)
-    # plt.ylim(0, upper_y)
-    # plt.show()
-
-    from utils.bisector_scaling import scale as bisector_scale
-    from collections import defaultdict
-
-    vertex_array = defaultdict(list)  # dict of lists
-    grain_array = defaultdict(list)
-    grain_centers = {}
-    for r_idx, region in enumerate(vor.regions):
-        if (
-            not -1 in region
-            and len(region) == 6
-            and region_sanity(region, upper_x, upper_y, vor.vertices)
-        ):  # bounded with 6 sides
-            for i in range(2, len(region) + 2):
-                i = i % len(region)  # wrap around
-                vertex_id = region[i - 1]
-                p1 = vor.vertices[region[i - 2]]  # neighboring point on the grain
-                p2 = vor.vertices[vertex_id]  # point we're interested in
-                p3 = vor.vertices[region[i]]  # other neighboring point
-                new_point = bisector_scale(p1, p2, p3, distance)
-                vertex_array[vertex_id].append(
-                    new_point
-                )  # {vertex_id:{grain_id: [new_point.x, new_point.y]}}
-                grain_array[r_idx].append(new_point)  # {grain_id:[point1]}
-            # plt.fill(*zip(*grain_array[r_idx]))  # draw the scaled polygons
-            centerx = sum([vor.vertices[p][0] for p in region]) / 6
-            centery = sum([vor.vertices[p][1] for p in region]) / 6
-            grain_centers[r_idx] = [centerx, centery]
-            # plt.plot(centerx, centery, "b.")
-            plt.text(centerx, centery, str(r_idx), size=120 / upper_y)
-            # label the grain, shrink text size as the sim size grows
-
-    print(f"Number of Grains: {len(grain_array)}")
-    area_per_grain = upper_y * upper_x / len(grain_array)
-    print(f"Average area per grain: {area_per_grain}")
-    # average grain diameter, treating grains as spheres
-    grain_size = 2 * np.sqrt(area_per_grain / np.pi)
-    print(f"Average grain size: {grain_size}")
-
-    # add crack
-    x_max = upper_x / 6
-    # bounds of crack should be one grain in size, centered around the middle.
-    halfway = upper_y / 2
-    y_min = halfway - grain_size / 2
-    y_max = halfway + grain_size / 2
-    # Plot the bounding box
-    rect = Rectangle(
-        (0, y_min),  # lower left corner of box
-        x_max,
-        y_max - y_min,
-        linestyle="dashed",
-        linewidth=0.1,
-        fill=False,
-    )  # type: ignore
-    plt.gca().add_patch(rect)
-
-    grain_array, grain_centers = add_crack(
-        grain_array, grain_centers, x_max, y_min, y_max
-    )
     #####################################
     # Select chosen grains using new seed
     #####################################
@@ -155,7 +60,7 @@ def modify(
                 chosen_grains.append(g)
 
     indexed = []
-    for i in range(len(vor.regions)):
+    for i in range(vor_regions_length):
         c = grain_centers.get(i, [0, 0])  # get the center of grain with id i,
         # and if empty (invalid region, etc), then use a default of [0,0]
         indexed.append(c)
@@ -185,11 +90,11 @@ def modify(
                     property_assignment(
                         file, "General", "Prop-2", f"Surf-{c_idx}", f"Surf-{neighbor}"
                     )
-        write_inp(file, args.name)
+        write_inp(file, name)
 
-    title = f"Seed: {seed}, prop_1: {prop_1}"
+    title = f"Seed: {seed}, Prop-1: {prop_1}"
     if mod_fraction:  # some grains will be modified
-        title += f", {mod_fraction:.0%} mod to prop_2: {prop_2}"
+        title += f", {mod_fraction:.0%} mod to Prop-2: {prop_2}"
     plt.title(title)
 
     plt.axis("square")
@@ -197,7 +102,7 @@ def modify(
     plt.ylim(0, size)
     for value in grain_array.values():
         plt.fill(*zip(*value))  # plot the grains
-    plt.savefig(f"{args.name}.png", dpi=20 * size)
+    plt.savefig(f"{name}.png", dpi=20 * size)
 
 
 if __name__ == "__main__":  # running standalone, not as a function, so take arguments
@@ -218,23 +123,14 @@ if __name__ == "__main__":  # running standalone, not as a function, so take arg
     args = parser.parse_args()
     name = args.name
     cae_filename = args.cae
+    fraction = args.fraction
     new_seed = args.seed
     if not cae_filename.endswith(".cae"):
         raise ValueError("Cae file must end with .cae")
-    # load parameters saved from homogenous run
-    previous_data = json.load(open(cae_filename.replace(".cae", ".json")))
-    size = previous_data["size"]
-    print(f"size: {size}")
-    old_seed = previous_data["seed"]
-    print(f"seed: {old_seed}")
-    prop_1 = previous_data["prop_1"]
-    print(f"prop_1: {prop_1}")
-    prop_2 = previous_data["prop_2"]
-    print(f"prop_2: {prop_2}")
 
     if new_seed:  # specify a seed
         pass
     else:  # no seed specified
         new_seed = None
 
-    modify(args.name, cae_filename, size, old_seed, args.fraction, seed=new_seed)
+    modify(cae_filename, name, fraction, new_seed)
