@@ -11,6 +11,7 @@ a0 = 5  # initial crack depth, be conservative
 strength = 50000  # primary property cohesive strength
 modulus = 1e9  # under traction separaton behaivor in the contact property
 critical_displacement = 1e-05  # total plastic displacement
+max_delta_a = 10  # max crack length increase per increment
 # ==============================================
 
 
@@ -69,9 +70,11 @@ for step in odb.steps.values():
         # Find the crack tip
         # loop through the nodes and check their CSDMG
         for i in range(len(csdmg.values)):
+            x = coords.values[i].data[0]
             if (
                 csdmg.values[i].data > dmg_thresh
-                and coords.values[i].data[0] > current_a
+                and x > current_a
+                and x < current_a + max_delta_a  # only look just ahead previous crack
             ):
                 # print("New crack tip at x=" + str(coords.values[i].data[0]))
                 current_a = coords.values[i].data[0]

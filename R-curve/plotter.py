@@ -23,13 +23,13 @@ with open("r-curve.txt", "r") as f:
             x_arr.append(float(x))
             y_arr.append(float(y))
 
-# delete data points if subsequet points have the same x-value
-for i in range(1, len(x_arr) - 1):  # don't want to delete the first point
-    if x_arr[i] == x_arr[i + 1]:  # look ahead
-        x_arr[i] = None
-        y_arr[i] = None
-x_arr = [x for x in x_arr if x is not None]
-y_arr = [y for y in y_arr if y is not None]
+# # delete data points if subsequet points have the same x-value
+# for i in range(1, len(x_arr) - 1):  # don't want to delete the first point
+#     if x_arr[i] == x_arr[i + 1]:  # look ahead
+#         x_arr[i] = None
+#         y_arr[i] = None
+# x_arr = [x for x in x_arr if x is not None]
+# y_arr = [y for y in y_arr if y is not None]
 
 fig = plt.figure()
 plt.ylabel("$K$")
