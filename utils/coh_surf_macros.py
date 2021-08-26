@@ -26,15 +26,20 @@ mdb.models['Model-1'].interactionProperties['{prop_name}'].Damage(
     evolTable=(({plastic_displacement}, ),){f', useStabilization=ON, viscosityCoef={viscosity}' if viscosity else ''})
 """
     )
-    print(
-        f"Length scale of {prop_name}: {length_scale(stiffness=coh_stiffness, strength=damagevalue, crit_displacement=plastic_displacement, scientific=True)}"
+    ls = length_scale(
+        stiffness=coh_stiffness,
+        strength=damagevalue,
+        crit_displacement=plastic_displacement,
+        scientific=True,
     )
+    print(f"Length scale of {prop_name}: {ls}")
+    return ls
 
 
 def general_interaction(f: TextIO, int_name: str, global_prop_id: str):
     f.write(
         f"""
-mdb.models['Model-1'].StdInitialization(name='CInit-1', openingTolerance=.01, overclosureTolerance=1.0)
+mdb.models['Model-1'].StdInitialization(name='CInit-1', openingTolerance=.006, overclosureTolerance=1.0)
 mdb.models['Model-1'].ContactStd(name='{int_name}', createStepName='Initial')
 mdb.models['Model-1'].interactions['{int_name}'].includedPairs.setValuesInStep(
     stepName='Initial', useAllstar=ON)
@@ -168,7 +173,7 @@ def line_writer(f: TextIO, p1: list, p2: list):
 def mesh(f: TextIO, seed_size=0.11):
     f.write(
         f"""
-elemType1 = mesh.ElemType(elemCode=CPS4, elemLibrary=STANDARD)
+elemType1 = mesh.ElemType(elemCode=CPS4R, elemLibrary=STANDARD)
 elemType2 = mesh.ElemType(elemCode=CPS3, elemLibrary=STANDARD)
 p = mdb.models['Model-1'].parts['Part-1']
 f = p.faces
