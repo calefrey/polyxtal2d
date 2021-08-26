@@ -173,7 +173,7 @@ def line_writer(f: TextIO, p1: list, p2: list):
 def mesh(f: TextIO, seed_size=0.11):
     f.write(
         f"""
-elemType1 = mesh.ElemType(elemCode=CPS4R, elemLibrary=STANDARD)
+elemType1 = mesh.ElemType(elemCode=CPS4, elemLibrary=STANDARD)
 elemType2 = mesh.ElemType(elemCode=CPS3, elemLibrary=STANDARD)
 p = mdb.models['Model-1'].parts['Part-1']
 f = p.faces
