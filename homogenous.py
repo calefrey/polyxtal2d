@@ -179,8 +179,9 @@ def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, see
         )
 
     # plt.show()
-    plt.savefig(f"{name}.png", dpi=20 * upper_y)
-    # scale with the size of the image
+    plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * upper_y)
+    # dpi scale with the size of the image
+    plt.gca().set_axis_off()
 
     # save the grain array to a file
     data = {}
