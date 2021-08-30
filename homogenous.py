@@ -189,6 +189,8 @@ def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, see
     data["seed"] = seed
     data["prop_1"] = prop_1
     data["prop_2"] = prop_2
+    data["lengthscale1"] = ls_1
+    data["lengthscale2"] = ls_2
     data["grain_array"] = grain_array
     data["grain_centers"] = grain_centers
     data["vor_regions_length"] = len(vor.regions)
