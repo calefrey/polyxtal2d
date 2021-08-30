@@ -6,11 +6,7 @@ from utils import *
 from utils.coh_surf_macros import *
 import numpy as np
 from matplotlib import cm
-
-# Plot parameters
-default_grain_color = "#1f78b4"  # dark blue
-mod_grain_color = "#a6cee3"  # light blue
-plt.gca().set_axis_off()
+from utils.shared_config import grain_color, modifier_color
 
 
 @timeit
@@ -42,7 +38,7 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
     # Plot all grains first
     ##############################
     for value in grain_array.values():
-        plt.fill(*zip(*value), color=default_grain_color, ls="")  # plot the grains
+        plt.fill(*zip(*value), color=grain_color, ls="")  # plot the grains
 
     #####################################
     # Select chosen grains using new seed
@@ -68,7 +64,7 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
                 pass
             else:
                 plt.fill(
-                    *zip(*grain_array[g]), color=mod_grain_color, fill=False
+                    *zip(*grain_array[g]), color=modifier_color, fill=False
                 )  # plot border of modified gran
 
                 chosen_grains.append(g)
@@ -104,11 +100,24 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
     title = f"Seed: {seed}, Prop-1: {prop_1}"
     if mod_fraction:  # some grains will be modified
         title += f", {mod_fraction:.0%} mod to Prop-2: {prop_2}"
-    plt.title(title)
 
     plt.axis("square")
     plt.xlim(0, size)
     plt.ylim(0, size)
+    notetext = (
+        f"Mod. seed: {seed}\n"
+        + f"Prop-1: {prop_1:.2E}\n"
+        + f"{mod_fraction:.0%} modified to\n"
+        + f"Prop-2: {prop_2:.2E}\n"
+    )
+
+    plt.gcf().text(0.05, 0.4, notetext, fontsize=8)
+    # plt.title(title)
+
+    plt.axis("square")
+    plt.xlim(0, size)
+    plt.ylim(0, size)
+    plt.gca().set_axis_off()  # hide the axes
     plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * size)
 
 

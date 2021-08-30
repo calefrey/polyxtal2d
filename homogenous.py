@@ -25,12 +25,10 @@ from utils.coh_surf_macros import (
 )
 from utils import length_scale, midpoints, region_sanity, timeit, add_crack
 from matplotlib.patches import Rectangle
+from utils.shared_config import grain_color, distance
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 # suppress divide-by-zero warning when calculating a slope
-
-
-distance = 0.005  # width of the gap between grains
 
 
 @timeit
@@ -121,7 +119,7 @@ def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, see
         linewidth=0.1,
         fill=False,
     )  # type: ignore
-    plt.gca().add_patch(rect)
+    # plt.gca().add_patch(rect)
 
     grain_array, grain_centers = add_crack(
         grain_array, grain_centers, x_max, y_min, y_max
@@ -158,30 +156,37 @@ def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, see
         top_displacement(file, "BC-2", u2=0.001, threshold=upper_y - 2)
         file.write(f"mdb.saveAs('{name}')")  # save cae
 
-    title = f"Seed: {seed}, Prop-1: {prop_1},  Prop-2: {prop_2}"
-    plt.title(title)
+    # title = f"Seed: {seed}, Prop-1: {prop_1},  Prop-2: {prop_2}"
+    # plt.title(title)
     plt.axis("square")
     plt.xlim(0, upper_x)
     plt.ylim(0, upper_y)
     notetext = (
-        "Length Scale:\n"
-        + f"Prop-1: {ls_1}\n"
-        + f"Prop-2: {ls_2}\n"
-        + f"Grain Size:\n"
-        + f"{grain_size:.3}"
+        f"Seed: {seed}\n"
+        + "Strengths:\n"
+        + f"  Prop-1: {prop_1:.2E}\n"
+        + f"  Prop-2: {prop_2:.2E}\n"
+        + "Length Scales:\n"
+        + f"  Prop-1: {ls_1}\n"
+        + f"  Prop-2: {ls_2}\n"
+        + f"Grain Size: {grain_size:.3}\n"
     )
 
-    plt.gcf().text(0.02, 0.5, notetext, fontsize=8)
+    plt.gcf().text(0.05, 0.4, notetext, fontsize=8)
     for key, value in grain_array.items():
-        plt.fill(*zip(*value))  # plot the grains
+        plt.fill(  # plot the grains
+            color=grain_color,
+            *zip(*value),
+            ls="",  # no line
+        )
         plt.text(
             grain_centers[key][0], grain_centers[key][1], str(key), size=120 / upper_y
         )
+    plt.gca().set_axis_off()  # hide the axes
 
     # plt.show()
     plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * upper_y)
     # dpi scale with the size of the image
-    plt.gca().set_axis_off()
 
     # save the grain array to a file
     data = {}
