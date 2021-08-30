@@ -5,6 +5,12 @@ from scipy.spatial import Delaunay
 from utils import *
 from utils.coh_surf_macros import *
 import numpy as np
+from matplotlib import cm
+
+# Plot parameters
+default_grain_color = "#1f78b4"  # dark blue
+mod_grain_color = "#a6cee3"  # light blue
+plt.gca().set_axis_off()
 
 
 @timeit
@@ -32,6 +38,11 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
         grain_centers = json_data["grain_centers"]
         grain_centers = keyint(grain_centers)  # type: dict[int, list[float]]
         vor_regions_length = json_data["vor_regions_length"]  # type:int
+    ##############################
+    # Plot all grains first
+    ##############################
+    for value in grain_array.values():
+        plt.fill(*zip(*value), color=default_grain_color, ls="")  # plot the grains
 
     #####################################
     # Select chosen grains using new seed
@@ -56,7 +67,10 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
             ):  # Don't add weaker modifiers if the grains are near the top or bottom
                 pass
             else:
-                plt.plot(*grain_centers[g], "r*")
+                plt.fill(
+                    *zip(*grain_array[g]), color=mod_grain_color, fill=False
+                )  # plot border of modified gran
+
                 chosen_grains.append(g)
 
     indexed = []
@@ -82,11 +96,6 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
             neighbors = indices[indptr[c_idx] : indptr[c_idx + 1]]
             for neighbor in neighbors:
                 if neighbor != 0:
-                    plt.plot(
-                        [grain_centers[c_idx][0], grain_centers[neighbor][0]],
-                        [grain_centers[c_idx][1], grain_centers[neighbor][1]],
-                        color=color,
-                    )
                     property_assignment(
                         file, "General", "Prop-2", f"Surf-{c_idx}", f"Surf-{neighbor}"
                     )
@@ -100,9 +109,7 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
     plt.axis("square")
     plt.xlim(0, size)
     plt.ylim(0, size)
-    for value in grain_array.values():
-        plt.fill(*zip(*value))  # plot the grains
-    plt.savefig(f"{name}.png", dpi=20 * size)
+    plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * size)
 
 
 if __name__ == "__main__":  # running standalone, not as a function, so take arguments
