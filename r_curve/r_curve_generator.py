@@ -5,17 +5,23 @@
 import math, os
 from odbAccess import *
 from sys import argv
+import json
 
 # PROPERTIES TO CHANGE ========================
 a0 = 5  # initial crack depth, be conservative
-strength = 50000  # primary property cohesive strength
 modulus = 1e9  # under traction separaton behaivor in the contact property
 critical_displacement = 1e-05  # total plastic displacement
 max_delta_a = 10  # max crack length increase per increment
 # ==============================================
 
-
+odb_filename = argv[1]
 dmg_thresh = 0.999
+# Load strength from the json file
+json_filename = odb_filename.replace(".odb", ".json")
+with open(json_filename, "r") as json_file:
+    data = json.load(json_file)
+    strength = int(data["prop_1"])
+    critical_displacement = float(data["plastic_displacement"])
 
 
 def stress_intensity_factor(stress, a, width):
@@ -36,14 +42,13 @@ def stress_intensity_factor(stress, a, width):
 
 
 # Objective: Generate a plot of crack length a vs stress intensity factor K
-odb = openOdb(path=argv[1], readOnly=True)
+odb = openOdb(path=odb_filename, readOnly=True)
 
 try:  # we append to the file, so if there's already one, delete it
     os.remove("r-curve.txt")
 except OSError:  # file already deleted
     pass
 f = open("r-curve.txt", "a")  # file to save data
-f.write("name=" + odb.name.split("/")[-1] + "\n")  # name of the odb
 initial_x_values = [
     value.data[0]  # x value for each node in first frame
     for value in odb.steps.values()[0].frames[0].fieldOutputs["COORD"].values

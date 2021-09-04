@@ -30,9 +30,18 @@ from utils.shared_config import grain_color, distance
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 # suppress divide-by-zero warning when calculating a slope
 
+plastic_displacement = 1e-5
+
 
 @timeit
-def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, seed=None):
+def generate(
+    name: str,
+    upper_x: int,
+    upper_y: int,
+    prop_1: float,
+    prop_2: float,
+    seed=None,
+):
 
     if not seed:  # no seed specified
         # pick a 4-digit number to be the random seed. The way this is picked doesn't matter.
@@ -141,14 +150,14 @@ def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, see
             file,
             "Prop-1",
             damagevalue=prop_1,
-            plastic_displacement=1e-5,
+            plastic_displacement=plastic_displacement,
             viscosity=1e-3,
         )
         ls_2 = interaction_property(
             file,
             "Prop-2",
             damagevalue=prop_2,
-            plastic_displacement=1e-5,
+            plastic_displacement=plastic_displacement,
             viscosity=1e-3,
         )
         general_interaction(file, "General", "Prop-1")
@@ -195,6 +204,7 @@ def generate(name, upper_x: int, upper_y: int, prop_1: float, prop_2: float, see
     data["seed"] = seed
     data["prop_1"] = prop_1
     data["prop_2"] = prop_2
+    data["plastic_displacement"] = plastic_displacement
     data["lengthscale1"] = ls_1
     data["lengthscale2"] = ls_2
     data["grain_array"] = grain_array

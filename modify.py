@@ -10,7 +10,14 @@ from utils.shared_config import grain_color, modifier_color
 
 
 @timeit
-def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
+def modify(
+    cae_filename: str,
+    name: str,
+    mod_fraction: float,
+    seed: int = None,
+    new_prop_1: float = None,
+    new_prop_2: float = None,
+):
     """
     Creates a python script to modify the homogenous CAE file,
     using microstructure information from a json file
@@ -29,6 +36,7 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
         keyint = lambda dict_: {
             int(k): v for k, v in dict_.items()
         }  # turns all keys into ints since the json process turns everything into strings
+        plastic_displacement = json_data["plastic_displacement"]  # type: float
         grain_array = json_data["grain_array"]
         grain_array = keyint(grain_array)  # type: dict[int, list[list[float]]]
         grain_centers = json_data["grain_centers"]
@@ -86,6 +94,25 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
     with open(f"{name}.py", "w") as file:
         file.write("from abaqusConstants import *\n")
         file.write(f"openMdb('{cae_filename}')\n")
+        if new_prop_1:  # override property from json file
+            prop_1 = new_prop_1
+            ls_1 = interaction_property(  # edit the interaction property
+                file,
+                "Prop-1",
+                damagevalue=prop_1,
+                plastic_displacement=plastic_displacement,
+                viscosity=1e-3,
+            )
+        if new_prop_2:  # override property from json file
+            prop_2 = new_prop_2
+            ls_2 = interaction_property(  # edit the interaction property
+                file,
+                "Prop-2",
+                damagevalue=prop_2,
+                plastic_displacement=plastic_displacement,
+                viscosity=1e-3,
+            )
+
         colors = iter(plt.cm.tab20(np.linspace(0, 1, len(chosen_grains))))  # type: ignore
         for c_idx in chosen_grains:
             color = next(colors)
@@ -119,6 +146,15 @@ def modify(cae_filename: str, name: str, mod_fraction: float, seed: int = None):
     plt.ylim(0, size)
     plt.gca().set_axis_off()  # hide the axes
     plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * size)
+
+    data = {
+        "prop_1": prop_1,
+        "prop_2": prop_2,
+        "seed": seed,
+        "mod_fraction": mod_fraction,
+        "plastic_displacement": plastic_displacement,
+    }
+    json.dump(data, open(f"{name}.json", "w"))
 
 
 if __name__ == "__main__":  # running standalone, not as a function, so take arguments
