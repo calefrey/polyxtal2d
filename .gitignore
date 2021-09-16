@@ -2,3 +2,6 @@ __pycache__/
 .vscode/
 abaqus/
 plots/
+venv/
+.ipynb_checkpoints/
+**.rpy**
