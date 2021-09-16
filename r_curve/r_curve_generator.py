@@ -9,8 +9,6 @@ import json
 
 # PROPERTIES TO CHANGE ========================
 a0 = 5  # initial crack depth, be conservative
-modulus = 1e9  # under traction separaton behaivor in the contact property
-critical_displacement = 1e-05  # total plastic displacement
 max_delta_a = 10  # max crack length increase per increment
 # ==============================================
 
@@ -21,6 +19,7 @@ json_filename = odb_filename.replace(".odb", ".json")
 with open(json_filename, "r") as json_file:
     data = json.load(json_file)
     strength = int(data["prop_1"])
+    modulus = float(data["coh_stiffness"])
     critical_displacement = float(data["plastic_displacement"])
 
 
