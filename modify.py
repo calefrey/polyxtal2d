@@ -113,9 +113,7 @@ def modify(
                 viscosity=1e-3,
             )
 
-        colors = iter(plt.cm.tab20(np.linspace(0, 1, len(chosen_grains))))  # type: ignore
         for c_idx in chosen_grains:
-            color = next(colors)
             neighbors = indices[indptr[c_idx] : indptr[c_idx + 1]]
             for neighbor in neighbors:
                 if neighbor != 0:
