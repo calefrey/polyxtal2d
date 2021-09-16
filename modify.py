@@ -123,11 +123,9 @@ def modify(
         )
         ls_2 = length_scale(
             strength=prop_2,
-            mesh_size=mesh_size,
             crit_displacement=plastic_displacement,
             stiffness=1e9,
             scientific=True,
-            check=True,
         )
         for c_idx in chosen_grains:
             neighbors = indices[indptr[c_idx] : indptr[c_idx + 1]]

@@ -157,6 +157,7 @@ def generate(
         ls_1 = length_scale(
             strength=prop_1,
             mesh_size=mesh_size,
+            crack_length=x_max,
             crit_displacement=plastic_displacement,
             stiffness=1e9,
             scientific=True,
@@ -171,11 +172,9 @@ def generate(
         )
         ls_2 = length_scale(
             strength=prop_2,
-            mesh_size=mesh_size,
             crit_displacement=plastic_displacement,
             stiffness=1e9,
             scientific=True,
-            check=True,
         )
         general_interaction(file, "General", "Prop-1")
         encastre(file, "BC-1", threshold=2)
