@@ -42,6 +42,7 @@ def generate(
     prop_2: float,
     mesh_size: float = 0.11,
     seed=None,
+    coh_stiffness=1e9,
 ):
 
     if not seed:  # no seed specified
@@ -153,13 +154,14 @@ def generate(
             damagevalue=prop_1,
             plastic_displacement=plastic_displacement,
             viscosity=1e-3,
+            coh_stiffness=coh_stiffness,
         )
         ls_1 = length_scale(
             strength=prop_1,
             mesh_size=mesh_size,
             crack_length=x_max,
             crit_displacement=plastic_displacement,
-            stiffness=1e9,
+            stiffness=coh_stiffness,
             scientific=True,
             check=True,
         )
@@ -169,11 +171,12 @@ def generate(
             damagevalue=prop_2,
             plastic_displacement=plastic_displacement,
             viscosity=1e-3,
+            coh_stiffness=coh_stiffness,
         )
         ls_2 = length_scale(
             strength=prop_2,
             crit_displacement=plastic_displacement,
-            stiffness=1e9,
+            stiffness=coh_stiffness,
             scientific=True,
         )
         general_interaction(file, "General", "Prop-1")
@@ -222,6 +225,7 @@ def generate(
     data["prop_2"] = prop_2
     data["plastic_displacement"] = plastic_displacement
     data["mesh_size"] = mesh_size
+    data["coh_stiffness"] = coh_stiffness
     data["lengthscale1"] = ls_1
     data["lengthscale2"] = ls_2
     data["grain_array"] = grain_array

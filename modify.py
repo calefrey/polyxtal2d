@@ -38,6 +38,7 @@ def modify(
         }  # turns all keys into ints since the json process turns everything into strings
         plastic_displacement = json_data["plastic_displacement"]  # type: float
         mesh_size = json_data["mesh_size"]  # type: float
+        coh_stiffness = json_data["coh_stiffness"]  # type: float
         grain_array = json_data["grain_array"]
         grain_array = keyint(grain_array)  # type: dict[int, list[list[float]]]
         grain_centers = json_data["grain_centers"]
@@ -102,6 +103,7 @@ def modify(
                 "Prop-1",
                 damagevalue=prop_1,
                 plastic_displacement=plastic_displacement,
+                coh_stiffness=coh_stiffness,
                 viscosity=1e-3,
             )
         if new_prop_2:  # override property from json file
@@ -111,20 +113,21 @@ def modify(
                 "Prop-2",
                 damagevalue=prop_2,
                 plastic_displacement=plastic_displacement,
+                coh_stiffness=coh_stiffness,
                 viscosity=1e-3,
             )
         ls_1 = length_scale(
             strength=prop_1,
             mesh_size=mesh_size,
             crit_displacement=plastic_displacement,
-            stiffness=1e9,
+            stiffness=coh_stiffness,
             scientific=True,
             check=True,
         )
         ls_2 = length_scale(
             strength=prop_2,
             crit_displacement=plastic_displacement,
-            stiffness=1e9,
+            stiffness=coh_stiffness,
             scientific=True,
         )
         for c_idx in chosen_grains:
