@@ -40,6 +40,7 @@ def generate(
     upper_y: int,
     prop_1: float,
     prop_2: float,
+    mesh_size: float = 0.11,
     seed=None,
 ):
 
@@ -141,24 +142,40 @@ def generate(
 
         process_lines(file)
         section(file, "Alumina", 370e9, 0.25)
-        mesh(file)
+        mesh(file, seed_size=mesh_size)
         make_instance(file)
         for g in grain_array:
             mps = midpoints(grain_array[g])
             surface_maker(file, f"Surf-{g}", mps)
-        ls_1 = interaction_property(
+        interaction_property(
             file,
             "Prop-1",
             damagevalue=prop_1,
             plastic_displacement=plastic_displacement,
             viscosity=1e-3,
         )
-        ls_2 = interaction_property(
+        ls_1 = length_scale(
+            strength=prop_1,
+            mesh_size=mesh_size,
+            crit_displacement=plastic_displacement,
+            stiffness=1e9,
+            scientific=True,
+            check=True,
+        )
+        interaction_property(
             file,
             "Prop-2",
             damagevalue=prop_2,
             plastic_displacement=plastic_displacement,
             viscosity=1e-3,
+        )
+        ls_2 = length_scale(
+            strength=prop_2,
+            mesh_size=mesh_size,
+            crit_displacement=plastic_displacement,
+            stiffness=1e9,
+            scientific=True,
+            check=True,
         )
         general_interaction(file, "General", "Prop-1")
         encastre(file, "BC-1", threshold=2)
@@ -205,6 +222,7 @@ def generate(
     data["prop_1"] = prop_1
     data["prop_2"] = prop_2
     data["plastic_displacement"] = plastic_displacement
+    data["mesh_size"] = mesh_size
     data["lengthscale1"] = ls_1
     data["lengthscale2"] = ls_2
     data["grain_array"] = grain_array

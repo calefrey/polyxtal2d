@@ -37,6 +37,7 @@ def modify(
             int(k): v for k, v in dict_.items()
         }  # turns all keys into ints since the json process turns everything into strings
         plastic_displacement = json_data["plastic_displacement"]  # type: float
+        mesh_size = json_data["mesh_size"]  # type: float
         grain_array = json_data["grain_array"]
         grain_array = keyint(grain_array)  # type: dict[int, list[list[float]]]
         grain_centers = json_data["grain_centers"]
@@ -96,7 +97,7 @@ def modify(
         file.write(f"openMdb('{cae_filename}')\n")
         if new_prop_1:  # override property from json file
             prop_1 = new_prop_1
-            ls_1 = interaction_property(  # edit the interaction property
+            interaction_property(  # edit the interaction property
                 file,
                 "Prop-1",
                 damagevalue=prop_1,
@@ -105,14 +106,29 @@ def modify(
             )
         if new_prop_2:  # override property from json file
             prop_2 = new_prop_2
-            ls_2 = interaction_property(  # edit the interaction property
+            interaction_property(  # edit the interaction property
                 file,
                 "Prop-2",
                 damagevalue=prop_2,
                 plastic_displacement=plastic_displacement,
                 viscosity=1e-3,
             )
-
+        ls_1 = length_scale(
+            strength=prop_1,
+            mesh_size=mesh_size,
+            crit_displacement=plastic_displacement,
+            stiffness=1e9,
+            scientific=True,
+            check=True,
+        )
+        ls_2 = length_scale(
+            strength=prop_2,
+            mesh_size=mesh_size,
+            crit_displacement=plastic_displacement,
+            stiffness=1e9,
+            scientific=True,
+            check=True,
+        )
         for c_idx in chosen_grains:
             neighbors = indices[indptr[c_idx] : indptr[c_idx + 1]]
             for neighbor in neighbors:
@@ -122,26 +138,19 @@ def modify(
                     )
         write_inp(file, name)
 
-    title = f"Seed: {seed}, Prop-1: {prop_1}"
-    if mod_fraction:  # some grains will be modified
-        title += f", {mod_fraction:.0%} mod to Prop-2: {prop_2}"
-
     plt.axis("square")
     plt.xlim(0, size)
     plt.ylim(0, size)
     notetext = (
-        f"Mod. seed: {seed}\n"
-        + f"Prop-1: {prop_1:.2E}\n"
-        + f"{mod_fraction:.0%} modified to\n"
-        + f"Prop-2: {prop_2:.2E}\n"
+        f"Seed: {seed}\n"
+        + "Strengths:\n"
+        + f"  Prop-1: {prop_1:.2E}\n"
+        + f"  Prop-2: {prop_2:.2E}\n"
+        + "Length Scales:\n"
+        + f"  Prop-1: {ls_1}\n"
+        + f"  Prop-2: {ls_2}"
     )
-
     plt.gcf().text(0.05, 0.4, notetext, fontsize=8)
-    # plt.title(title)
-
-    plt.axis("square")
-    plt.xlim(0, size)
-    plt.ylim(0, size)
     plt.gca().set_axis_off()  # hide the axes
     plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * size)
 

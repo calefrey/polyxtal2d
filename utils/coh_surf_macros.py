@@ -1,7 +1,6 @@
 from functools import wraps
 from os import write
 from typing import List, Text, TextIO
-from utils import length_scale
 
 
 def interaction_property(
@@ -26,14 +25,6 @@ mdb.models['Model-1'].interactionProperties['{prop_name}'].Damage(
     evolTable=(({plastic_displacement}, ),){f', useStabilization=ON, viscosityCoef={viscosity}' if viscosity else ''})
 """
     )
-    ls = length_scale(
-        stiffness=coh_stiffness,
-        strength=damagevalue,
-        crit_displacement=plastic_displacement,
-        scientific=True,
-    )
-    print(f"Length scale of {prop_name}: {ls}")
-    return ls
 
 
 def general_interaction(f: TextIO, int_name: str, global_prop_id: str):
