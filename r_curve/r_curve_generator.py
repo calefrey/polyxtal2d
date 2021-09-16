@@ -49,6 +49,7 @@ try:  # we append to the file, so if there's already one, delete it
 except OSError:  # file already deleted
     pass
 f = open("r-curve.txt", "a")  # file to save data
+f.write("name=" + odb_filename + "\n")
 initial_x_values = [
     value.data[0]  # x value for each node in first frame
     for value in odb.steps.values()[0].frames[0].fieldOutputs["COORD"].values
@@ -59,8 +60,6 @@ width = max(initial_x_values) - x_offset
 current_a = a0
 toughness = 0.5 * (strength * critical_displacement)
 print("Toughness = " + str(toughness))
-length_scale = modulus * toughness / pow(strength, 2)
-f.write("lengthscale=" + str(length_scale) + "\n")
 critical_sif = math.sqrt(toughness * modulus)
 print("Critical SIF:", critical_sif)
 for step in odb.steps.values():
