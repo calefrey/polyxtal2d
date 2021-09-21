@@ -17,6 +17,7 @@ def modify(
     seed: int = None,
     new_prop_1: float = None,
     new_prop_2: float = None,
+    check_ls: bool = False,
 ):
     """
     Creates a python script to modify the homogenous CAE file,
@@ -122,7 +123,7 @@ def modify(
             crit_displacement=plastic_displacement,
             stiffness=coh_stiffness,
             scientific=True,
-            check=True,
+            check=check_ls,
         )
         ls_2 = length_scale(
             strength=prop_2,

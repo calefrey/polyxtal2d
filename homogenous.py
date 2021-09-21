@@ -43,6 +43,7 @@ def generate(
     mesh_size: float = 0.11,
     seed=None,
     coh_stiffness=1e9,
+    check_ls: bool = False,
 ):
 
     if not seed:  # no seed specified
@@ -163,7 +164,7 @@ def generate(
             crit_displacement=plastic_displacement,
             stiffness=coh_stiffness,
             scientific=True,
-            check=True,
+            check=check_ls,
         )
         interaction_property(
             file,
