@@ -1,6 +1,4 @@
-# Run with abaqus python .\r_curve_generator.py .\precrack.odb
-#  r-curve.txt will be created in this directory with the values of a/w and K_I
-
+# Run with abaqus python .\post_processor.py .\precrack.odb
 
 import math, os
 from odbAccess import *
@@ -21,6 +19,7 @@ with open(json_filename, "r") as json_file:
     strength = int(data["prop_1"])
     modulus = float(data["coh_stiffness"])
     critical_displacement = float(data["plastic_displacement"])
+    mesh_size = float(data["mesh_size"])
 
 
 def stress_intensity_factor(stress, a, width):
@@ -42,6 +41,11 @@ def stress_intensity_factor(stress, a, width):
 
 # Objective: Generate a plot of crack length a vs stress intensity factor K
 odb = openOdb(path=odb_filename, readOnly=True)
+
+
+# ===============================================
+# Generate the r-curve, saved to r-curve.txt
+# ===============================================
 
 try:  # we append to the file, so if there's already one, delete it
     os.remove("r-curve.txt")
@@ -108,6 +112,35 @@ for step in odb.steps.values():
 
         # Write the data to a file:
         f.write(str(a / width) + "\t" + str(normalized) + "\n")
-
 f.close()
+
+
+# ===============================================
+# Find crack path in final frame
+# ===============================================
+
+x_array = []
+y_array = []
+
+frame = odb.steps.values()[-1].frames[-1]
+coords = frame.fieldOutputs["COORD"]
+csdmg = frame.fieldOutputs["CSDMG    General_Contact_Faces/General_Contact_Faces"]
+for i in range(len(csdmg.values)):
+    if csdmg.values[i].data > dmg_thresh:
+        x_array.append(coords.values[i].data[0])
+        y_array.append(coords.values[i].data[1])
+# abaqus python returns values as numpy floats,
+# so we need to make them native before serialization
+x_array = [float(i) for i in x_array]
+y_array = [float(i) for i in y_array]
+json_data = {
+    "title": os.path.basename(odb.name).split(".")[0] + "_crack_path",
+    "type": "scatter",
+    "color": "red",
+    "x_values": x_array,
+    "y_values": y_array,
+    "num_failed_nodes": len(x_array),
+}
+json.dump(json_data, open("crack_path.json", "w"))
+
 odb.close()
