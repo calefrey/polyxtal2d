@@ -135,14 +135,13 @@ x_array = [float(i) for i in x_array]
 y_array = [float(i) for i in y_array]
 json_data = {
     "title": os.path.basename(odb.name).split(".")[0],
-    "type": "scatter",
-    "color": "red",
     "x_values": x_array,
     "y_values": y_array,
     "num_failed_nodes": len(x_array),
     "mesh_size": mesh_size,
     "crack_path_length": len(x_array) * mesh_size,
+    "runtime": odb.diagnosticData.jobTime.wallclockTime,  # wallclock time in seconds
 }
-json.dump(json_data, open("crack_path.json", "w"))
+json.dump(json_data, open("job_data.json", "w"))
 
 odb.close()
