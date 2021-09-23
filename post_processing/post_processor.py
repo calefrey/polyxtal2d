@@ -140,6 +140,8 @@ json_data = {
     "x_values": x_array,
     "y_values": y_array,
     "num_failed_nodes": len(x_array),
+    "mesh_size": mesh_size,
+    "crack_path_length": len(x_array) * mesh_size,
 }
 json.dump(json_data, open("crack_path.json", "w"))
 
