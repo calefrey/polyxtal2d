@@ -134,7 +134,7 @@ for i in range(len(csdmg.values)):
 x_array = [float(i) for i in x_array]
 y_array = [float(i) for i in y_array]
 json_data = {
-    "title": os.path.basename(odb.name).split(".")[0] + "_crack_path",
+    "title": os.path.basename(odb.name).split(".")[0],
     "type": "scatter",
     "color": "red",
     "x_values": x_array,
