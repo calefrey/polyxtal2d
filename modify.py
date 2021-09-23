@@ -163,6 +163,7 @@ def modify(
         "mod_fraction": mod_fraction,
         "plastic_displacement": plastic_displacement,
         "coh_stiffness": coh_stiffness,
+        "mesh_size": mesh_size,
     }
     json.dump(data, open(f"{name}.json", "w"))
 
