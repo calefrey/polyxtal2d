@@ -44,6 +44,7 @@ def generate(
     seed=None,
     coh_stiffness=1e9,
     check_ls: bool = False,
+    standalone: bool = False,
 ):
 
     if not seed:  # no seed specified
@@ -87,7 +88,7 @@ def generate(
     for r_idx, region in enumerate(vor.regions):
         if (
             not -1 in region
-            and len(region) == 6
+            # and len(region) == 6 # only want hexagons
             and region_sanity(region, upper_x, upper_y, vor.vertices)
         ):  # bounded with 6 sides
             for i in range(2, len(region) + 2):
@@ -183,6 +184,8 @@ def generate(
         general_interaction(file, "General", "Prop-1")
         encastre(file, "BC-1", threshold=2)
         top_displacement(file, "BC-2", u2=0.001, threshold=upper_y - 2)
+        if standalone:
+            write_inp(file, name)
         file.write(f"mdb.saveAs('{name}')")  # save cae
 
     # title = f"Seed: {seed}, Prop-1: {prop_1},  Prop-2: {prop_2}"
