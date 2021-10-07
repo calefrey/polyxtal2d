@@ -141,6 +141,7 @@ json_data = {
     "mesh_size": mesh_size,
     "crack_path_length": len(x_array) * mesh_size,
     "runtime": odb.diagnosticData.jobTime.wallclockTime,  # wallclock time in seconds
+    "toughness": toughness,
 }
 json.dump(json_data, open("job_data.json", "w"))
 
