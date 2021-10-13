@@ -36,8 +36,7 @@ plastic_displacement = 1e-5
 @timeit
 def generate(
     name: str,
-    upper_x: int,
-    upper_y: int,
+    size: int,
     prop_1: float,
     prop_2: float,
     mesh_size: float = 0.11,
@@ -56,9 +55,9 @@ def generate(
     print(f"Seed: {seed}")
 
     points = []
-    for i in range(0, upper_x):
+    for i in range(0, size):
         x = i + random.gauss(0, 0.25) * 0.5  # use gaussian distribution
-        for j in range(0, upper_y):
+        for j in range(0, size):
             if i % 2:
                 j = j + 0.5
             y = j + random.gauss(0, 0.25) * 0.5
@@ -66,8 +65,8 @@ def generate(
             # plt.plot(x, y, "b.")
 
     # plt.axis("square")
-    # plt.xlim(0, upper_x)
-    # plt.ylim(0, upper_y)
+    # plt.xlim(0, size)
+    # plt.ylim(0, size)
     # plt.show()
 
     vor = Voronoi(points)
@@ -75,8 +74,8 @@ def generate(
     # display original voronoi boundaries
     # fig = voronoi_plot_2d(vor)
     # plt.axis("square")
-    # plt.xlim(0, upper_x)
-    # plt.ylim(0, upper_y)
+    # plt.xlim(0, size)
+    # plt.ylim(0, size)
     # plt.show()
 
     from utils.bisector_scaling import scale as bisector_scale
@@ -89,7 +88,7 @@ def generate(
         if (
             not -1 in region
             # and len(region) == 6 # only want hexagons
-            and region_sanity(region, upper_x, upper_y, vor.vertices)
+            and region_sanity(region, size, size, vor.vertices)
         ):  # bounded with 6 sides
             for i in range(2, len(region) + 2):
                 i = i % len(region)  # wrap around
@@ -107,20 +106,20 @@ def generate(
             centery = sum([vor.vertices[p][1] for p in region]) / 6
             grain_centers[r_idx] = [centerx, centery]
             # plt.plot(centerx, centery, "b.")
-            # plt.text(centerx, centery, str(r_idx), size=120 / upper_y)
+            # plt.text(centerx, centery, str(r_idx), size=120 / size)
             # label the grain, shrink text size as the sim size grows
 
     print(f"Number of Grains: {len(grain_array)}")
-    area_per_grain = upper_y * upper_x / len(grain_array)
+    area_per_grain = size * size / len(grain_array)
     print(f"Average area per grain: {area_per_grain}")
     # average grain diameter, treating grains as spheres
     grain_size = 2 * np.sqrt(area_per_grain / np.pi)
     print(f"Average grain size: {grain_size}")
 
     # add crack
-    x_max = upper_x / 6
+    x_max = size / 6
     # bounds of crack should be one grain in size, centered around the middle.
-    halfway = upper_y / 2
+    halfway = size / 2
     y_min = halfway - grain_size / 2
     y_max = halfway + grain_size / 2
     # Plot the bounding box
@@ -181,9 +180,11 @@ def generate(
             stiffness=coh_stiffness,
             scientific=True,
         )
+        effective_ls = 370e9 / 2 * (coh_stiffness)
+        print(f"Effective length scale: {effective_ls}")
         general_interaction(file, "General", "Prop-1")
         encastre(file, "BC-1", threshold=2)
-        top_displacement(file, "BC-2", u2=0.001, threshold=upper_y - 2)
+        top_displacement(file, "BC-2", u2=0.001, threshold=size - 2)
         if standalone:
             write_inp(file, name)
         file.write(f"mdb.saveAs('{name}')")  # save cae
@@ -191,8 +192,8 @@ def generate(
     # title = f"Seed: {seed}, Prop-1: {prop_1},  Prop-2: {prop_2}"
     # plt.title(title)
     plt.axis("square")
-    plt.xlim(0, upper_x)
-    plt.ylim(0, upper_y)
+    plt.xlim(0, size)
+    plt.ylim(0, size)
     notetext = (
         f"Seed: {seed}\n"
         + "Strengths:\n"
@@ -212,18 +213,17 @@ def generate(
             ls="",  # no line
         )
         plt.text(
-            grain_centers[key][0], grain_centers[key][1], str(key), size=120 / upper_y
+            grain_centers[key][0], grain_centers[key][1], str(key), size=120 / size
         )
     plt.gca().set_axis_off()  # hide the axes
 
     # plt.show()
-    plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * upper_y)
+    plt.savefig(f"{name}.png", bbox_inches="tight", dpi=20 * size)
     # dpi scale with the size of the image
 
     # save the grain array to a file
     data = {}
-    data["size"] = upper_x  # assume square
-    # data["upper_y"] = upper_y
+    data["size"] = size
     data["seed"] = seed
     data["prop_1"] = prop_1
     data["prop_2"] = prop_2
@@ -260,8 +260,7 @@ if __name__ == "__main__":  # running standalone, not as a function, so take arg
     )
     args = parser.parse_args()
     name = args.name
-    upper_x = args.size
-    upper_y = args.size
+    size = args.size
     prop_1 = args.prop_1
     prop_2 = args.prop_2
 
@@ -270,4 +269,4 @@ if __name__ == "__main__":  # running standalone, not as a function, so take arg
     else:  # no seed specified
         seed = None
 
-    generate(name, upper_x, upper_y, prop_1, prop_2, seed=seed)
+    generate(name, size, prop_1, prop_2, seed=seed)
