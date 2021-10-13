@@ -126,4 +126,4 @@ Job {jobname} ran for {runtime}
             report.write(f"Total crack length: {len(cracked_nodes)*data['mesh_size']}")
 
 
-f.close()
+report.close()
