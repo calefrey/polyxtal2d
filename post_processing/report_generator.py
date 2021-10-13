@@ -37,7 +37,7 @@ for (root, dirs, files) in os.walk("."):
                         y_arr.append(float(y))
                     except ValueError:
                         continue
-                plt.plot(x_arr, y_arr, label=root.strip("./\\"))
+                plt.plot(x_arr, y_arr, marker=".", label=root.strip("./\\"))
 plt.ylabel("$K$")
 plt.xlabel("$\\frac{a}{w}$")
 plt.legend(fontsize=8)
