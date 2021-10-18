@@ -180,7 +180,7 @@ def generate(
             stiffness=coh_stiffness,
             scientific=True,
         )
-        effective_ls = 370e9 / 2 * (coh_stiffness)
+        effective_ls = 370e9 / (2 * (coh_stiffness))
         print(f"Effective length scale: {effective_ls}")
         general_interaction(file, "General", "Prop-1")
         encastre(file, "BC-1", threshold=2)
