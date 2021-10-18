@@ -108,7 +108,7 @@ s = mdb.models['Model-1'].ConstrainedSketch(name='__profile__',
 g, v, d, c = s.geometry, s.vertices, s.dimensions, s.constraints
 s.setPrimaryObject(option=STANDALONE)
 mdb.models['Model-1'].StaticStep(maxNumInc=10000, name='Step-1', previous=
-    'Initial')
+    'Initial',initialInc=0.1, maxInc=0.1)
 mdb.models['Model-1'].steps['Step-1'].control.setValues(allowPropagation=OFF, 
     resetDefaultValues=OFF, discontinuous=ON)
 mdb.models['Model-1'].fieldOutputRequests['F-Output-1'].setValues(variables=(
