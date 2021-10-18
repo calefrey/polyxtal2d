@@ -5,6 +5,7 @@
 from sys import argv
 import datetime, os
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import numpy as np
 import json
 
@@ -80,7 +81,18 @@ Job {jobname} ran for {runtime}
                 report.write("No data to plot\n\n")
                 continue  # skip to next job
             plt.figure()  # new figure for a clean slate
-            plt.scatter(data["x_values"], data["y_values"], s=1, c="tab:red")
+            try:  # plot all nodes with any damage, with color corresponding to damage
+                plt.scatter(
+                    data["x_values"],
+                    data["y_values"],
+                    s=1,
+                    c=data["dmg_values"],
+                    cmap=cm.turbo,
+                )
+                cbar = plt.colorbar()
+                cbar.set_label("CSDMG", labelpad=10, rotation=270)
+            except KeyError:  # if there is no damage data saved - only fully damaged nodes saved
+                plt.scatter(data["x_values"], data["y_values"], s=1, c="tab:red")
             plt.xlim(0, 80)
             plt.ylim(0, 80)
             plt.savefig(f"{jobname}/crack_path.png")

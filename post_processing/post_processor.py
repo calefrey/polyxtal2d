@@ -121,14 +121,16 @@ f.close()
 
 x_array = []
 y_array = []
+dmg_array = []
 
 frame = odb.steps.values()[-1].frames[-1]
 coords = frame.fieldOutputs["COORD"]
 csdmg = frame.fieldOutputs["CSDMG    General_Contact_Faces/General_Contact_Faces"]
 for i in range(len(csdmg.values)):
-    if csdmg.values[i].data > dmg_thresh:
+    if csdmg.values[i].data > 0.01:
         x_array.append(coords.values[i].data[0])
         y_array.append(coords.values[i].data[1])
+        dmg_array.append(csdmg.values[i].data)
 # abaqus python returns values as numpy floats,
 # so we need to make them native before serialization
 x_array = [float(i) for i in x_array]
@@ -137,6 +139,7 @@ json_data = {
     "title": os.path.basename(odb.name).split(".")[0],
     "x_values": x_array,
     "y_values": y_array,
+    "dmg_values": dmg_array,
     "num_failed_nodes": len(x_array),
     "mesh_size": mesh_size,
     "crack_path_length": len(x_array) * mesh_size,
