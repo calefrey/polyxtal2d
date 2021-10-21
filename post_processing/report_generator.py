@@ -104,8 +104,12 @@ Job {jobname} ran for {runtime}
             area_vals = []
             prev_area = 0
             for a in np.arange(0, 80, 1):
-                cracked_nodes = [x for x in data["x_values"] if x <= a]
-                cracked_area = len(cracked_nodes) * data["mesh_size"] * 2
+                node_damage = 0  # total damage normalized to node size
+                for i in range(len(data["x_values"])):
+                    if data["x_values"][i] <= a:
+                        node_damage += data["dmg_values"][i]
+
+                cracked_area = node_damage * data["mesh_size"] * 2
                 # number of failed nodes times node length times 2 sides of the crack
                 if cracked_area > 0 and cracked_area != prev_area:
                     # there is a cracked area and it's different than the last one
@@ -128,14 +132,11 @@ Job {jobname} ran for {runtime}
             plt.text(25, 10, poly2latex(fit))
             dA_da = fit.deriv()(40)  # toughness at midpoint
             toughness_R = dA_da * data["toughness"]  # effective toughness
-            plt.text(30, 20, f"Effective Toughness: {toughness_R}")
-
-            print(f"No data, skipping {jobname}")
 
             plt.legend()
             plt.savefig(f"{jobname}/toughening.png")
             report.write(f"![]({jobname}/toughening.png){{height=4in}}\n\n")
-            report.write(f"Total crack length: {len(cracked_nodes)*data['mesh_size']}")
-
+            report.write(f"* Total damage: {cracked_area}\n\n")
+            report.write(f"* Effective toughness: {toughness_R}\n\n")
 
 report.close()
