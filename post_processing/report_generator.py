@@ -108,7 +108,10 @@ Job {jobname} ran for {runtime}
                 node_damage = 0  # total damage normalized to node size
                 for i in range(len(data["x_values"])):
                     if data["x_values"][i] <= a:
-                        node_damage += data["dmg_values"][i]
+                        try:
+                            node_damage += data["dmg_values"][i]
+                        except KeyError:  # if there is no damage data saved each saved node is fully damaged
+                            node_damage += 1
 
                 cracked_area = node_damage * data["mesh_size"] * 2
                 # number of failed nodes times node length times 2 sides of the crack
