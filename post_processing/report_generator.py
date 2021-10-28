@@ -8,7 +8,10 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 import json
+import re
 
+# regular expression to extract simulation parameters from name and sort them appropriately
+sorting_func = lambda s: [float(x) for x in re.findall(r"(\d*\.?\d*e[+-]?\d+)", s)]
 
 report_name = argv[1]
 
@@ -25,6 +28,7 @@ geometry: margin=2cm
 )
 # all r-curves in one plot
 for (root, dirs, files) in os.walk("."):
+    dirs.sort(key=sorting_func)  # sort the directories
     for file in files:
         if file.endswith("r-curve.txt"):  # only want r-curve files
             filepath = os.path.join(root, file)
@@ -62,6 +66,7 @@ def poly2latex(poly: np.poly1d):
 
 # individual run sections
 for (root, dirs, files) in os.walk("."):  # loop through directories in root folder
+    dirs.sort(key=sorting_func)  # sort the directories
     if root == ".":
         continue  # skip root folder
     for file in files:
@@ -70,6 +75,10 @@ for (root, dirs, files) in os.walk("."):  # loop through directories in root fol
             data = json.load(open(os.path.join(root, file)))
             jobname = data["title"]
             runtime = datetime.timedelta(seconds=data["runtime"])
+            if not data["x_values"]:
+                report.write(f"{jobname} ran for {runtime} but yielded no results\n\n")
+                print("Skipping")
+                continue  # skip to next job
             report.write(
                 f"""
 \\newpage
@@ -78,9 +87,6 @@ Job {jobname} ran for {runtime}
 ![]({jobname}/{jobname}.png){{height=4in}}\n
 """
             )
-            if not data["x_values"]:
-                report.write("No data to plot\n\n")
-                continue  # skip to next job
             plt.figure()  # new figure for a clean slate
             try:  # plot all nodes with any damage, with color corresponding to damage
                 plt.scatter(
