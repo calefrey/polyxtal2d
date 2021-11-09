@@ -6,12 +6,11 @@ from sys import argv
 import json
 
 # PROPERTIES TO CHANGE ========================
-a0 = 5  # initial crack depth, be conservative
 max_delta_a = 10  # max crack length increase per increment
+dmg_thresh = 0.999
 # ==============================================
 
 odb_filename = argv[1]
-dmg_thresh = 0.999
 # Load strength from the json file
 json_filename = odb_filename.replace(".odb", ".json")
 with open(json_filename, "r") as json_file:
@@ -59,8 +58,7 @@ initial_x_values = [
 ]
 x_offset = min(initial_x_values)
 width = max(initial_x_values) - x_offset
-
-current_a = a0
+current_a = width / 8  # initial point, should be near initial crack tip
 toughness = 0.5 * (strength * critical_displacement)
 print("Toughness = " + str(toughness))
 critical_sif = math.sqrt(toughness * modulus)
