@@ -17,6 +17,7 @@ def modify(
     seed: int = None,
     new_prop_1: float = None,
     new_prop_2: float = None,
+    viscosity: float = 1e-3,
     check_ls: bool = False,
 ):
     """
@@ -105,7 +106,7 @@ def modify(
                 damagevalue=prop_1,
                 plastic_displacement=plastic_displacement,
                 coh_stiffness=coh_stiffness,
-                viscosity=1e-3,
+                viscosity=viscosity,
             )
         if new_prop_2:  # override property from json file
             prop_2 = new_prop_2
@@ -115,7 +116,7 @@ def modify(
                 damagevalue=prop_2,
                 plastic_displacement=plastic_displacement,
                 coh_stiffness=coh_stiffness,
-                viscosity=1e-3,
+                viscosity=viscosity
             )
         ls_1 = length_scale(
             strength=prop_1,
