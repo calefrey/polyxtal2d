@@ -58,7 +58,12 @@ initial_x_values = [
 ]
 x_offset = min(initial_x_values)
 width = max(initial_x_values) - x_offset
-current_a = width / 8  # initial point, should be near initial crack tip
+center_x_vals = [
+    v.data[0]  # x value of node
+    for v in odb.steps.values()[0].frames[0].fieldOutputs["COORD"].values  # first frame
+    if 39.5 < v.data[1] < 40.5  # in the middle, where starting crack is
+]
+current_a = min(center_x_vals)  # starting crack x position,
 toughness = 0.5 * (strength * critical_displacement)
 print("Toughness = " + str(toughness))
 critical_sif = math.sqrt(toughness * modulus)
