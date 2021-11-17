@@ -58,10 +58,19 @@ initial_x_values = [
 ]
 x_offset = min(initial_x_values)
 width = max(initial_x_values) - x_offset
+# find the precrack location
+initial_y_vals = [
+    value.data[1]  # x value for each node in first frame
+    for value in odb.steps.values()[0].frames[0].fieldOutputs["COORD"].values
+]
+height = max(initial_y_vals) - min(initial_y_vals)
+
+upper_lim = height / 2 + 0.05
+lower_lim = height / 2 - 0.05
 center_x_vals = [
     v.data[0]  # x value of node
     for v in odb.steps.values()[0].frames[0].fieldOutputs["COORD"].values  # first frame
-    if 39.5 < v.data[1] < 40.5  # in the middle, where starting crack is
+    if lower_lim < v.data[1] < upper_lim  # in the middle, where starting crack is
 ]
 current_a = min(center_x_vals)  # starting crack x position,
 toughness = 0.5 * (strength * critical_displacement)
