@@ -84,7 +84,6 @@ for (root, dirs, files) in os.walk("."):  # loop through directories in root fol
 \\newpage
 Job {jobname} ran for {runtime}
 
-![]({jobname}/{jobname}.png){{height=4in}}\n
 """
             )
             plt.figure()  # new figure for a clean slate
@@ -102,8 +101,8 @@ Job {jobname} ran for {runtime}
                 plt.scatter(data["x_values"], data["y_values"], s=1, c="tab:red")
             plt.xlim(0, 80)
             plt.ylim(0, 80)
-            plt.savefig(f"{jobname}/crack_path.png")
-            report.write(f"![]({jobname}/crack_path.png){{height=4in}}\n\n")
+            plt.savefig(f"{root}/crack_path.png")
+            report.write(f"![]({root}/crack_path.png){{height=4in}}\n\n")
 
             plt.figure()
             # R curve toughening plot
@@ -144,8 +143,8 @@ Job {jobname} ran for {runtime}
             toughness_R = dA_da * data["toughness"]  # effective toughness
 
             plt.legend()
-            plt.savefig(f"{jobname}/toughening.png")
-            report.write(f"![]({jobname}/toughening.png){{height=4in}}\n\n")
+            plt.savefig(f"{root}/toughening.png")
+            report.write(f"![]({root}/toughening.png){{height=4in}}\n\n")
             report.write(f"* Total damage: {cracked_area}\n\n")
             report.write(f"* Effective toughness: {toughness_R}\n\n")
 
