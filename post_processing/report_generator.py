@@ -27,6 +27,7 @@ geometry: margin=2cm
 """
 )
 # all r-curves in one plot
+all_data = {}  # {sim_name: (x_array, y_array)}
 for (root, dirs, files) in os.walk("."):
     dirs.sort(key=sorting_func)  # sort the directories
     for file in files:
@@ -42,7 +43,28 @@ for (root, dirs, files) in os.walk("."):
                         y_arr.append(float(y))
                     except ValueError:
                         continue
-                plt.plot(x_arr, y_arr, marker=".", label=root.strip("./\\"))
+                plt.plot(x_arr, y_arr, marker=".", label=root.strip("./\\"), alpha=0.5)
+                all_data[root.strip("./\\")] = (x_arr, y_arr)  # save data for later
+# make an average plot using "binning" technique
+bins = np.linspace(0, 1, 20)
+x_arr = []
+y_arr = []
+for i in range(len(bins) - 1):
+    left = bins[i]
+    right = bins[i + 1]
+    print(left, right)
+    binned_ys = [
+        y for xs, ys in all_data.values() for x, y in zip(xs, ys) if left < x < right
+    ]
+    binned_xs = [
+        x for xs, ys in all_data.values() for x, y in zip(xs, ys) if left < x < right
+    ]
+    if len(binned_ys) > 0:
+        binned_y = np.mean(binned_ys)
+        binned_x = np.mean(binned_xs)
+        x_arr.append(binned_x)
+        y_arr.append(binned_y)
+plt.plot(x_arr, y_arr, marker=".", c="k", label="Average")
 plt.ylabel("$K$")
 plt.xlabel("$\\frac{a}{w}$")
 plt.ylim(bottom=0)
