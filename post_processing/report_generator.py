@@ -46,25 +46,22 @@ for (root, dirs, files) in os.walk("."):
                 plt.plot(x_arr, y_arr, marker=".", label=root.strip("./\\"), alpha=0.5)
                 all_data[root.strip("./\\")] = (x_arr, y_arr)  # save data for later
 # make an average plot using "binning" technique
-bins = np.linspace(0, 1, 20)
-x_arr = []
-y_arr = []
-for i in range(len(bins) - 1):
-    left = bins[i]
-    right = bins[i + 1]
-    print(left, right)
-    binned_ys = [
-        y for xs, ys in all_data.values() for x, y in zip(xs, ys) if left < x < right
-    ]
-    binned_xs = [
-        x for xs, ys in all_data.values() for x, y in zip(xs, ys) if left < x < right
-    ]
-    if len(binned_ys) > 0:
-        binned_y = np.mean(binned_ys)
-        binned_x = np.mean(binned_xs)
-        x_arr.append(binned_x)
-        y_arr.append(binned_y)
-plt.plot(x_arr, y_arr, marker=".", c="k", label="Average")
+bins = np.linspace(0, 1, 50)
+
+# need to interpolate the data first
+interpolated_data = {}
+for sim_name, (x_arr, y_arr) in all_data.items():
+    interp_y_arr = [np.interp(x, x_arr, y_arr) for x in bins]
+    interpolated_data[sim_name] = (bins, interp_y_arr)
+
+mean_y_arr = []
+for i in range(len(bins)):
+    bin_y_arr = []
+    for sim_name, (x_arr, y_arr) in interpolated_data.items():
+        bin_y_arr.append(y_arr[i])  # get the values for each simulation in the bin
+    mean_y_arr.append(np.mean(bin_y_arr))
+
+plt.plot(bins, mean_y_arr, label="Average", color="black")
 plt.ylabel("$K$")
 plt.xlabel("$\\frac{a}{w}$")
 plt.ylim(bottom=0)
