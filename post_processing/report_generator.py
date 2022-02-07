@@ -9,6 +9,7 @@ from matplotlib import cm
 import numpy as np
 import json
 import re
+from find_node_properties import node_toughness
 
 # regular expression to extract simulation parameters from name and sort them appropriately
 sorting_func = lambda s: [float(x) for x in re.findall(r"(\d*\.?\d*e[+-]?\d+)", s)]
@@ -126,50 +127,37 @@ Job {jobname} ran for {runtime}
             plt.figure()
             # R curve toughening plot
             a_values = []
-            area_vals = []
+            toughness_vals = []
             prev_area = 0
+            # need to get inp file to get the toughness values
+            inp_filename = os.path.join(root, f"{jobname}.inp")
             for a in np.arange(0, 80, 1):
-                node_damage = 0  # total damage normalized to node size
+                total_node_toughness = 0
                 for i in range(len(data["x_values"])):
                     if data["x_values"][i] <= a:
-                        try:
-                            if (
-                                data["dmg_values"][i] > 0.95
-                            ):  # only include significantly damaged nodes
-                                node_damage += data["dmg_values"][i]
-                        except KeyError:  # if there is no damage data saved each saved node is fully damaged
-                            node_damage += 1
-                cracked_area = node_damage * data["mesh_size"] * 2
-                # number of failed nodes times node length times 2 sides of the crack
-                if cracked_area > 0 and cracked_area != prev_area:
-                    # there is a cracked area and it's different than the last one
-                    a_values.append(a)
-                    area_vals.append(cracked_area)
-                    prev_area = cracked_area
-            plt.scatter(a_values, area_vals, s=10)
-            # np.polynomial.set_default_printstyle("unicode")
-            plt.plot(
-                a_values,
-                [2 * a for a in a_values],
-                "r--",
-                label="No toughening (y=2x)",
-            )  # area double the length if no toughening
+                        if (
+                            data["dmg_values"][i] > 0.95
+                        ):  # only include significantly damaged nodes
+                            node_id = data["node_ids"][i]
+                            total_node_toughness += node_toughness(
+                                node_id, inp_filename
+                            )
+                toughness = total_node_toughness * data["mesh_size"]
+                toughness_vals.append(toughness)
+
+            plt.scatter(a_values, toughness_vals, s=10)
 
             # do some curve fitting
             try:
-                fit = np.poly1d(np.polyfit(a_values, area_vals, 1))
+                fit = np.poly1d(np.polyfit(a_values, toughness_vals, 1))
                 fity = [fit(x) for x in a_values]
                 plt.plot(a_values, fity, "--", label="Curve fit")
                 plt.text(25, 10, poly2latex(fit))
-                dA_da = fit.deriv()(40)  # toughness at midpoint
-                toughness_R = dA_da * data["toughness"]  # effective toughness
             except TypeError as e:
                 print(e)
                 plt.text(25, 10, "No data")
             plt.legend()
             plt.savefig(f"{root}/toughening.png")
             report.write(f"![]({root}/toughening.png){{height=4in}}\n\n")
-            report.write(f"* Total damage: {cracked_area}\n\n")
-            report.write(f"* Effective toughness: {toughness_R}\n\n")
 
 report.close()

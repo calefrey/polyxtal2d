@@ -133,6 +133,7 @@ f.close()
 
 x_array = []
 y_array = []
+node_id_array = []
 dmg_array = []
 
 frame = odb.steps.values()[-1].frames[-1]
@@ -143,10 +144,12 @@ for i in range(len(csdmg.values)):
         x_array.append(coords.values[i].data[0])
         y_array.append(coords.values[i].data[1])
         dmg_array.append(csdmg.values[i].data)
+        node_id_array.append(coords.values[i].nodeLabel)
 # abaqus python returns values as numpy floats,
 # so we need to make them native before serialization
 x_array = [float(i) for i in x_array]
 y_array = [float(i) for i in y_array]
+node_id_array = [str(i) for i in node_id_array]
 json_data = {
     "title": os.path.basename(odb.name).split(".")[0],
     "x_values": x_array,
@@ -157,6 +160,7 @@ json_data = {
     "crack_path_length": len(x_array) * mesh_size,
     "runtime": odb.diagnosticData.jobTime.wallclockTime,  # wallclock time in seconds
     "toughness": toughness,
+    "node_ids": node_id_array,
 }
 json.dump(json_data, open("job_data.json", "w"))
 
