@@ -133,10 +133,12 @@ Job {jobname} ran for {runtime}
                 for i in range(len(data["x_values"])):
                     if data["x_values"][i] <= a:
                         try:
-                            node_damage += data["dmg_values"][i]
+                            if (
+                                data["dmg_values"][i] > 0.95
+                            ):  # only include significantly damaged nodes
+                                node_damage += data["dmg_values"][i]
                         except KeyError:  # if there is no damage data saved each saved node is fully damaged
                             node_damage += 1
-
                 cracked_area = node_damage * data["mesh_size"] * 2
                 # number of failed nodes times node length times 2 sides of the crack
                 if cracked_area > 0 and cracked_area != prev_area:
@@ -154,13 +156,16 @@ Job {jobname} ran for {runtime}
             )  # area double the length if no toughening
 
             # do some curve fitting
-            fit = np.poly1d(np.polyfit(a_values, area_vals, 1))
-            fity = [fit(x) for x in a_values]
-            plt.plot(a_values, fity, "--", label="Curve fit")
-            plt.text(25, 10, poly2latex(fit))
-            dA_da = fit.deriv()(40)  # toughness at midpoint
-            toughness_R = dA_da * data["toughness"]  # effective toughness
-
+            try:
+                fit = np.poly1d(np.polyfit(a_values, area_vals, 1))
+                fity = [fit(x) for x in a_values]
+                plt.plot(a_values, fity, "--", label="Curve fit")
+                plt.text(25, 10, poly2latex(fit))
+                dA_da = fit.deriv()(40)  # toughness at midpoint
+                toughness_R = dA_da * data["toughness"]  # effective toughness
+            except TypeError as e:
+                print(e)
+                plt.text(25, 10, "No data")
             plt.legend()
             plt.savefig(f"{root}/toughening.png")
             report.write(f"![]({root}/toughening.png){{height=4in}}\n\n")
