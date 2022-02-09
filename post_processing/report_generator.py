@@ -52,8 +52,11 @@ bins = np.linspace(0, 1, 50)
 # need to interpolate the data first
 interpolated_data = {}
 for sim_name, (x_arr, y_arr) in all_data.items():
-    interp_y_arr = [np.interp(x, x_arr, y_arr) for x in bins]
-    interpolated_data[sim_name] = (bins, interp_y_arr)
+    try:
+        interp_y_arr = [np.interp(x, x_arr, y_arr) for x in bins]
+        interpolated_data[sim_name] = (bins, interp_y_arr)
+    except ValueError:
+        print(f"{sim_name} has no data for interpolation")
 
 mean_y_arr = []
 for i in range(len(bins)):
