@@ -56,10 +56,11 @@ def node_toughness(node_id: str, inp_file: str, debug: bool = False) -> float:
                         f"Surface {surface_assignment} assigned to property {property}"
                     )
                 break
-    if property is None and debug:
-        print(
-            f"Surface {surface_assignment} not found, so it must be the default property"
-        )
+    if property is None:
+        if debug:
+            print(
+                f"Surface {surface_assignment} not found, so it must be the default property"
+            )
         property = "Prop-1"  # default property
 
     # now find the property associated with that surface
@@ -79,6 +80,7 @@ def node_toughness(node_id: str, inp_file: str, debug: bool = False) -> float:
                 print(f"Displacement of {property} is {displacement}")
     if strength is None:
         print(f"Property {property} not found")
+        print(f"Error occured on node {node_id} \a")
         exit(1)
 
     # toughness = 0.5 * strength * critical displacement
