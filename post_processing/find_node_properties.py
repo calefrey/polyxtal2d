@@ -1,6 +1,7 @@
 from io import TextIOWrapper
 import re, time
 from functools import lru_cache
+import numpy as np
 
 # find the surface assigment, this line should be above the node list
 surface_assignment_regex = (
@@ -22,7 +23,7 @@ def timeit(func):
     return wrapper
 
 
-# @lru_cache(maxsize=None)
+@timeit
 def node_toughness(
     node_id: str, inp_file: str = None, inp_lines: list = None, debug: bool = False
 ):
@@ -84,14 +85,10 @@ def node_toughness(
 
     # Find the surface assignment
     for element, faces in node_elements.items():
-        for i in range(len(inp_data)):
-            if element in inp_data[i]:
-                if debug:
-                    print(inp_data[i - 1].strip())
-                    print(inp_data[i].strip())
-                if re.match(surface_assignment_regex, inp_data[i - 1]):
-                    # we see the node and we're in the right section
-                    match = re.match(surface_assignment_regex, inp_data[i - 1])
+        for i, line in enumerate(inp_data):
+            if re.match(surface_assignment_regex, line):
+                if element in inp_data[i + 1]:
+                    match = re.match(surface_assignment_regex, line)
                     surface_assignment = match.group("surface")
                     face = match.group("face")
                     if face not in faces:  # the node is not on that face
@@ -102,12 +99,30 @@ def node_toughness(
                             f"Element {element} assigned to surface {surface_assignment}_{face}"
                         )
                         print()
+                    break
+            elif re.match(surface_assignment_regex + ", generate", line):
+                surf_match = re.match(surface_assignment_regex + ", generate", line)
+                surface_assignment = surf_match.group("surface")
+                face = surf_match.group("face")
 
+                # need to determine the elements assigned using generate notation
+                match = re.match(
+                    r"^\s(?P<start>\d+),\s+(?P<end>\d+),\s+(?P<skip>\d+)$",
+                    inp_data[i + 1],
+                )
+                start = int(match.group("start"))
+                end = int(match.group("end"))
+                skip = int(match.group("skip"))
+                surf_elements = np.arange(start, end + 1, skip)  # inclusive
+                if element in surf_elements and face in faces:
+                    if debug:
+                        print(
+                            f"Element {element} assigned to surface {surface_assignment}_{face}"
+                        )
+                    break
     if surface_assignment is None:
 
-        # raise ValueError(f"No surface found matching node {node_id}: {node_elements}")
-        print(f"No surface found matching node {node_id}: {node_elements}")
-        surface_assignment = "Surf-undefined"
+        raise ValueError(f"No surface found matching node {node_id}: {node_elements}")
 
     # now try to find the property assigned to the surface
     for line in inp_data:
@@ -169,15 +184,12 @@ if __name__ == "__main__":
 
     # json_file = args[1]
     # inp_file = args[2]
-    json_file = "job_data.json"
-    inp_file = "test.inp"
+    json_file = "post_processing/job_data.json"
+    inp_file = "post_processing/test.inp"
     debug = False
 
     node_ids = json.load(open(json_file, "r"))["node_ids"]
     print(f"Found {len(node_ids)} nodes")
     for node_id in node_ids:
-        try:
-            toughness = node_toughness(node_id, inp_file, debug=debug)
-            print(f"Toughness of node {node_id} is {toughness:.2f}")
-        except ValueError as e:
-            print(f"{e} \a")
+        toughness = node_toughness(node_id, inp_file, debug=debug)
+        print(f"Toughness of node {node_id} is {toughness:.2f}")
