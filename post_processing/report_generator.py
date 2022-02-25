@@ -9,7 +9,7 @@ from matplotlib import cm
 import numpy as np
 import json
 import re
-from find_node_properties import node_toughness
+import time
 
 # regular expression to extract simulation parameters from name and sort them appropriately
 sorting_func = lambda s: [float(x) for x in re.findall(r"(\d*\.?\d*e[+-]?\d+)", s)]
@@ -130,11 +130,19 @@ Job {jobname} ran for {runtime}
             plt.figure()
             # R curve toughening plot
             a_values = []
+            a_min = min(data["x_values"])
             toughness_vals = []
             prev_area = 0
-            # need to get inp file to get the toughness values
-            inp_filename = os.path.join(root, f"{jobname}.inp")
+            break_flag = False
+            try:
+                node_lut = json.load(open(os.path.join(root, "node_lut.json")))
+
+            except FileNotFoundError:
+                print("No node_lut.json found")
+                continue
+
             for a in np.arange(0, 80, 1):
+                # print(f"Toughness at a={a} of 80")
                 total_node_toughness = 0
                 for i in range(len(data["x_values"])):
                     if data["x_values"][i] <= a:
@@ -142,12 +150,20 @@ Job {jobname} ran for {runtime}
                             data["dmg_values"][i] > 0.95
                         ):  # only include significantly damaged nodes
                             node_id = data["node_ids"][i]
-                            total_node_toughness += node_toughness(
-                                node_id, inp_filename
-                            )
-                toughness = total_node_toughness * data["mesh_size"]
-                toughness_vals.append(toughness)
-
+                            try:
+                                strength, displacement = node_lut[node_id]
+                                total_node_toughness += (
+                                    0.5 * float(strength) * float(displacement)
+                                )
+                            except KeyError:  # default property
+                                strength, displacement = node_lut["default"]
+                                total_node_toughness += (
+                                    0.5 * float(strength) * float(displacement)
+                                )
+                if total_node_toughness > 0:  # only plot if there is any damage
+                    a_values.append(a)
+                    toughness = total_node_toughness * data["mesh_size"]
+                    toughness_vals.append(total_node_toughness / (a - a_min))
             plt.scatter(a_values, toughness_vals, s=10)
 
             # do some curve fitting
