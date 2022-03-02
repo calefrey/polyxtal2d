@@ -17,6 +17,8 @@ def modify(
     seed: int = None,
     new_prop_1: float = None,
     new_prop_2: float = None,
+    new_crit_disp_1: float = None,
+    new_crit_disp_2: float = None,
     viscosity: float = 1e-3,
     check_ls: bool = False,
 ):
@@ -38,7 +40,7 @@ def modify(
         keyint = lambda dict_: {
             int(k): v for k, v in dict_.items()
         }  # turns all keys into ints since the json process turns everything into strings
-        plastic_displacement = json_data["plastic_displacement"]  # type: float
+        old_crit_disp = json_data["plastic_displacement"]  # type: float
         mesh_size = json_data["mesh_size"]  # type: float
         coh_stiffness = json_data["coh_stiffness"]  # type: float
         grain_array = json_data["grain_array"]
@@ -98,13 +100,26 @@ def modify(
     with open(f"{name}.py", "w") as file:
         file.write("from abaqusConstants import *\n")
         file.write(f"openMdb('{cae_filename}')\n")
+
+        # modify critical displacement
+        if new_crit_disp_1:
+            crit_disp_1 = new_crit_disp_1
+        else:
+            crit_disp_1 = old_crit_disp
+        if new_crit_disp_2:
+            crit_disp_2 = new_crit_disp_2
+        else:
+            crit_disp_2 = old_crit_disp
+
         if new_prop_1:  # override property from json file
             prop_1 = new_prop_1
+            if new_crit_disp_1:  # override critical displacement from json file
+                crit_disp_1 = new_crit_disp_1
             interaction_property(  # edit the interaction property
                 file,
                 "Prop-1",
                 damagevalue=prop_1,
-                plastic_displacement=plastic_displacement,
+                plastic_displacement=crit_disp_1,
                 coh_stiffness=coh_stiffness,
                 viscosity=viscosity,
             )
@@ -114,21 +129,21 @@ def modify(
                 file,
                 "Prop-2",
                 damagevalue=prop_2,
-                plastic_displacement=plastic_displacement,
+                plastic_displacement=crit_disp_2,
                 coh_stiffness=coh_stiffness,
-                viscosity=viscosity
+                viscosity=viscosity,
             )
         ls_1 = length_scale(
             strength=prop_1,
             mesh_size=mesh_size,
-            crit_displacement=plastic_displacement,
+            crit_displacement=crit_disp_1,
             stiffness=coh_stiffness,
             scientific=True,
             check=check_ls,
         )
         ls_2 = length_scale(
             strength=prop_2,
-            crit_displacement=plastic_displacement,
+            crit_displacement=crit_disp_2,
             stiffness=coh_stiffness,
             scientific=True,
         )
@@ -162,7 +177,7 @@ def modify(
         "prop_2": prop_2,
         "seed": seed,
         "mod_fraction": mod_fraction,
-        "plastic_displacement": plastic_displacement,
+        "plastic_displacement": crit_disp_1,
         "coh_stiffness": coh_stiffness,
         "mesh_size": mesh_size,
     }
