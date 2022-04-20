@@ -1,14 +1,5 @@
-Requirements:
+# Polycrystal 2D Research Repository
 
-* Scipy
-* matplotlib
+Before committing, format using the Black formatting tool (`pip install black`)
 
-Before committing, format using the Black formatter
-
-To get absolute references (using coordinates) out of the abaqus .rpy files instead of by "mesh number", run the following in the command window
-
-`session.journalOptions.setValues(replayGeometry=COORDINATE, recoverGeometry=COORDINATE)`
-
-To get references using the native python syntax (lists, etc) enter the following in the command window
-
-`session.journalOptions.setValues(replayGeometry=INDEX)`
+For more information, see the [wiki](https://gitlab.com/mmod1/polyxtal2d/-/wikis/home)
