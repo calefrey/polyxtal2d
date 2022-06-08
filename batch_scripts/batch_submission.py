@@ -52,7 +52,7 @@ except ImportError:
     from modify import modify  # pull from polyxtal2d folder
 
 print("Creating microstrcture")
-generate(name, size, size, prop_1, prop_2, coh_stiffness=2e9, mesh_size=0.11)
+generate(name, size, prop_1, prop_2, coh_stiffness=2e9, mesh_size=0.11)
 print("Generating Homogenous CAE")
 srun(f"{abqpath}/abaqus cae noGUI={name}.py")
 # we now have a CAE file with built in strength properties
