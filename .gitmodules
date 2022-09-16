@@ -1,0 +1,3 @@
+[submodule "wiki"]
+	path = wiki
+	url = https://gitlab.com/mmod1/polyxtal2d.wiki.git
