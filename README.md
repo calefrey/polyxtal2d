@@ -4,4 +4,4 @@ Code used for my research which culminated in my paper available [here](https://
 
 Before committing, format using the Black formatting tool (`pip install black`)
 
-For more information, see the [wiki](https://gitlab.com/mmod1/polyxtal2d/-/wikis/home)
+For more information, see the [wiki](https://github.com/calefrey/polyxtal2d/wiki)
